@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# Run test
+#
+
+pytest --pyargs tests -W ignore::DeprecationWarning

@@ -1,0 +1,59 @@
+BUGZILLA:
+  DOMAIN: bugzilla.redhat.com
+  URL: https://bugzilla.redhat.com/xmlrpc.cgi
+  API_KEY: ~/.config/python-bugzilla/bugzillarc
+SPREADSHEET_ID: 1ftibl011mzlge8gcJ0MfmvIw_C8Hq2iYeUdU6B-rbwI
+DELIMITER: ", "
+HEADER_OFFSET: 0
+SHEET_COLUMNS:
+  Bug ID:
+    SOURCE: id
+    KEY: True
+    LINK: https://bugzilla.redhat.com/show_bug.cgi?id=
+  Component: component
+  Status: status
+  Summary: summary
+  Assignee: assigned_to
+  Priority: priority
+  Flags:
+    DELIMITER: " "
+    SOURCE:
+      DELIMITER: ""
+      FROM: flags
+      GET:
+      - name: .*
+        status: .*
+  Opened: creation_time
+SHEETS:
+  - NAME: rpm
+    QUERY:
+        query_format: advanced
+        include_fields:
+        - _default
+        - flags
+        - external_bugs
+        product: Fedora
+        component: rpm
+        status: __open__
+        limit: 100
+  - NAME: libdnf
+    QUERY:
+        query_format: advanced
+        include_fields:
+        - _default
+        - flags
+        - external_bugs
+        product: Fedora
+        component: libdnf
+        status: __open__
+        limit: 100
+    SHEET_COLUMNS:
+      Jira:
+        SOURCE:
+          FROM: external_bugs
+          GET:
+          - ext_bz_bug_id: .*
+          CONDITION:
+            type:
+              type: JIRA
+          LINK: https://issues.redhat.com/browse/
