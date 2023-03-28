@@ -49,18 +49,20 @@ python-bugzilla
 
 ## Usage
 ```
-gd2gs [-h] [-c CONFIG] [-v] [-vv] [-q] [-t]
+gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t]
 ```
 
 The script updates data rows in the Google spreadsheet according to key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in clipboard separated with new lines which enables them to be easily copied into the spreadsheet.
+
+`-c CONFIG` defines the name of YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadheet with names of sheets and related queries, the column names with the related items and additional parameters that define the content of the spreadsheet. If `-c` parameter is not set then `gd2gs.yaml` file from the working directory is used.
+
+`-s SHEET` determines which sheets are processed. The selected sheets can be any sheets that are set up in the configuration YAML file. If the parameter does not occur, then all sheets, wich are listed in the configuration file, are handled.
 
 The script reports warnings and errors by default. `-v` parameter extends the level of logging with info level and `-vv` with debug level. `-q` parameter reduces the logging to errors only.
 
 Parameter `-t` disables Google spreadsheet update.
 
 `-h` parameter shows a short help message.
-
-`-c CONFIG` defines the name of YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadheet with names of sheets and related queries, the column names with the related items and additional parameters that define the content of the spreadsheet. If `-c` parameter is not set then `gd2gs.yaml` file from the working directory is used.
 
 ## Configuration file structure
 The configuration file contains reserved words written in capital letters and additional data defining a transition of input data to the target Google spreadsheet.

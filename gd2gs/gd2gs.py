@@ -34,6 +34,8 @@ def get_cli_parameters():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default=CONFIG_FILE,
             help='config file (default: '+CONFIG_FILE+')')
+    parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
+            help='use listed sheets')
     parser.add_argument('-v', '--verbose', action='count', dest='verbosity',
             default=0, help='verbose output (repeat for increased verbosity)')
     parser.add_argument('-q', '--quiet', action='store_const', const=-1,
@@ -42,7 +44,23 @@ def get_cli_parameters():
             help='disable Google spreadsheet update')
     args = parser.parse_args()
     log.setup(args.verbosity)
-    return args.config, args.test
+    return args.config, args.sheet, args.test
+
+def get_sheets_and_data(source_access, config, selected_sheets):
+    """ Get valid sheets list and source data """
+    source_data = {}
+    if not selected_sheets:
+        selected_sheets = config.sheets
+    else:
+        for item in selected_sheets:
+            if not item in config.sheets:
+                log.error('uknown sheet: '+ item)
+    sheets_list = []
+    for sheet_name, query in config.queries.items():
+        if sheet_name in selected_sheets:
+            source_data[sheet_name] = SourceData(source_access, query, config.sheet[sheet_name])
+            sheets_list.append(sheet_name)
+    return sheets_list, source_data
 
 def transform_data(source, google, sheet_conf):
     """ Copy transformed data from source to the target Google spreadsheet """
@@ -78,8 +96,8 @@ def main():
     Get the config file, read source data and write them
     intmissing_key_valueso the google spreadsheet.
     """
-    config_file_name, test = get_cli_parameters()
     log.debug('script started')
+    config_file_name, selected_sheets, test = get_cli_parameters()
     if test:
         log.info('test mode (Google spreadsheet update is disabled)')
     config = Config(config_file_name)
@@ -89,15 +107,13 @@ def main():
         source_access = Jira(config.jira_server, config.jira_token, config.jira_max_results)
     else:
         log.fatal_error('unkown source')
-    data = {}
-    for sheet_name, query in config.queries.items():
-        data[sheet_name] = SourceData(source_access, query, config.sheet[sheet_name])
-    google_spreadsheet = Gsheet(config.spreadsheet_id, config.sheets, config.sheet)
+    sheets_list, data = get_sheets_and_data(source_access, config, selected_sheets)
+    google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
     transform_data(data, google_spreadsheet, config.sheet)
 
     if not test:
         google_spreadsheet.update_spreadsheet()
-        for sheet_name in config.sheets:
+        for sheet_name in sheets_list:
             for column in config.sheet[sheet_name].columns:
                 if config.sheet[sheet_name].columns[column].link and \
                         config.sheet[sheet_name].key == column:

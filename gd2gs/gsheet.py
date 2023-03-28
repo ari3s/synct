@@ -92,6 +92,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                     range=sheet, valueRenderOption='FORMULA').execute().get('values', [])
         except HttpError as error:
             log.error(error)
+            return None
         # Normalize raw_data to the same length of the header
         header_offset = self.sheets_config[sheet].header_offset
         header_length = len(raw_data[header_offset])
@@ -104,8 +105,16 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def get_spreadsheet(self):
         """ Read the active sheets """
+        remove_sheets = []
         for sheet in self.active_sheets:
-            self.data[sheet] = self.get_sheet(sheet)
+            data = self.get_sheet(sheet)
+            if data is not None:
+                self.data[sheet] = data
+            else:            # the sheet is not available
+                log.error("can't access sheet " + sheet)
+                remove_sheets.append(sheet)
+        for sheet in remove_sheets:
+            self.active_sheets.remove(sheet)
 
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """
