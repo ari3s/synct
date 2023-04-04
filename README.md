@@ -36,7 +36,7 @@ The script can be installed on Linux or MacOS systems by `pip`:
 python -m pip install gd2gs-0.2.0.tar.gz
 ```
 
-There are following dependences that are installed from PyPI by the command above:
+There are following dependencies that are installed from PyPI by the command above:
 ```
 google-api-python-client
 google-auth-oauthlib
@@ -54,9 +54,9 @@ gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t]
 
 The script updates data rows in the Google spreadsheet according to key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in clipboard separated with new lines which enables them to be easily copied into the spreadsheet.
 
-`-c CONFIG` defines the name of YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadheet with names of sheets and related queries, the column names with the related items and additional parameters that define the content of the spreadsheet. If `-c` parameter is not set then `gd2gs.yaml` file from the working directory is used.
+`-c CONFIG` defines the name of YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadsheet with names of sheets and related queries, the column names with the related items and additional parameters that define the content of the spreadsheet. If `-c` parameter is not set then `gd2gs.yaml` file from the working directory is used.
 
-`-s SHEET` determines which sheets are processed. The selected sheets can be any sheets that are set up in the configuration YAML file. If the parameter does not occur, then all sheets, wich are listed in the configuration file, are handled.
+`-s SHEET` determines which sheets are processed. The selected sheets can be any sheets that are set up in the configuration YAML file. If the parameter does not occur, then all sheets, which are listed in the configuration file, are handled.
 
 The script reports warnings and errors by default. `-v` parameter extends the level of logging with info level and `-vv` with debug level. `-q` parameter reduces the logging to errors only.
 
@@ -77,18 +77,18 @@ Jira structured data including custom field IDs and names can be found in XML da
 | ---------------- | ----------- |
 | `API_KEY`        | File name that contains API key to access Bugzilla. |
 | `BUGZILLA`       | The script takes data from Bugzilla. It should contain `API_KEY`, `DOMAIN` and `URL`, optionally `MAX_RESULTS`. |
-| `CONDITION`      | It is used together with `FROM` and `GET` reserved words to define a condition which should be fulfilled to obtain reqired data from the input. |
-| `DELIMITER`      | Delimiter is used for separtion items in one cell. The default value is space. Delimiter can be defined globally as well as individually in sheets and columns. If `DELIMITER` is defined together with `GET` reserved word, then it defines a separator between items obtained from the `GET` list. |
+| `CONDITION`      | It is used together with `FROM` and `GET` reserved words to define a condition which should be fulfilled to obtain required data from the input. |
+| `DELIMITER`      | Delimiter is used for separation items in one cell. The default value is space. Delimiter can be defined globally as well as individually in sheets and columns. If `DELIMITER` is defined together with `GET` reserved word, then it defines a separator between items obtained from the `GET` list. |
 | `DOMAIN`         | Bugzilla domain. |
-| `FROM`           | It is used together with `GET` (and optionally with `CONDITION`) reserved word to address the higher level of structred identifiers. |
-| `GET`            | It is used together with `FROM` (and optionally with `CONDITION`) reserved word to address the list of lower level structred identifiers with explicit value which can be regular expressions. |
+| `FROM`           | It is used together with `GET` (and optionally with `CONDITION`) reserved word to address the higher level of structured identifiers. |
+| `GET`            | It is used together with `FROM` (and optionally with `CONDITION`) reserved word to address the list of lower level structured identifiers with explicit value which can be regular expressions. |
 | `HEADER_OFFSET`  | The first row of Google spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0 which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. If can be either global or specific in each sheet. |
 | `JIRA`           | The script takes data from Jira. It should contain `SERVER` and `TOKEN`, optionally `MAX_RESULTS`. |
 | `KEY`            | The column containing keys is identified by `KEY` reserved word with `True` value. It can be either global or specific in each sheet. |
 | `LINK`           | It can be used in columns. It contains URL that is used as a prefix of values. If the column is key column, link format is used. |
 | `MAX_RESULTS`    | It defines maximum number of obtained items from Jira for each query. It can be only a part of `JIRA` section. |
 | `NAME`           | It defines name of each sheet. |
-| `QUERY`          | Query definition in each sheet. It is spefic per input. |
+| `QUERY`          | Query definition in each sheet. It is specific per input. |
 | `SERVER`         | URL of Jira server. It can be only a part of `JIRA` section. |
 | `SHEET_COLUMNS`  | Definition of columns names and their relation to data identifiers obtained from the input. It can be either global or specific in each sheet. |
 | `SHEETS`         | List of sheets that should be addressed in the target Google spreadsheet. |
@@ -162,7 +162,7 @@ SHEETS:
 
 ## Authorized access
 ### Bugzilla
-Bugzilla accces is handled using API key as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). API key can be generated in Preferences of the personal Bugzilla profile and stored in a file that is referred in the YAML configuration file of the script.
+Bugzilla access is handled using API key as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). API key can be generated in Preferences of the personal Bugzilla profile and stored in a file that is referred in the YAML configuration file of the script.
 
 ### Jira
 The script uses REST API that requires an API token. The token can be generated from your Jira account according to the guidance here: [https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/). The stored token file must be referred in the YAML configuration file of the script.
