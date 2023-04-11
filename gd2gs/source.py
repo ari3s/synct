@@ -119,16 +119,8 @@ def evaluate(value, config, source_item, column_is_key):
             for index, element in enumerate(value):
                 value[index] = link + element
         proper_value = config.delimiter.join(map(str, value))
-    elif isinstance(value, str):
-        if link:
-            proper_value = link + value
-        else:
-            proper_value = value
     else:
-        if link:
-            proper_value = link + str(value)
-        else:
-            proper_value = str(value)
+        proper_value = link + str(value) if link else str(value)
     return proper_value
 
 def check_eq(main_dict, sub_dict):

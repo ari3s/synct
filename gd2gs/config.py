@@ -140,6 +140,37 @@ class Config:   # pylint: disable=too-many-instance-attributes
 
 def get_sheet_config(config_data, spreadsheet):
     """ Get Google sheet params """
+
+    def get_column_config(key, column, col, c_data):
+        if isinstance(c_data, dict):
+            if KEY in c_data:
+                if key:
+                    log.error(CONFIG_FILE_MORE_KEYS)
+                key = column
+            col.delimiter = c_data[DELIMITER] \
+                    if DELIMITER in c_data else delimiter
+            if LINK in c_data:
+                col.link = c_data[LINK]
+            get_source_config(col, c_data)
+        else:
+            col.data = c_data
+        return key
+
+    def get_source_config(col, c_data):
+        if isinstance(c_data[SOURCE], dict):
+            col.delimiter2 = c_data[SOURCE][DELIMITER] \
+                    if DELIMITER in c_data[SOURCE] else col.delimiter
+            if FROM in c_data[SOURCE]:
+                col.data = c_data[SOURCE][FROM]
+            if GET in c_data[SOURCE]:
+                col.gets = c_data[SOURCE][GET]
+            if CONDITION in c_data[SOURCE]:
+                col.condition = c_data[SOURCE][CONDITION]
+            if LINK in c_data[SOURCE]:
+                col.link = c_data[SOURCE][LINK]
+        else:
+            col.data = c_data[SOURCE]
+
     key = None
     columns = {}
     if spreadsheet:
@@ -158,34 +189,7 @@ def get_sheet_config(config_data, spreadsheet):
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()
-            if isinstance(data, dict):
-                if KEY in data:
-                    if key:
-                        log.error(CONFIG_FILE_MORE_KEYS)
-                    key = column
-                if DELIMITER in data:
-                    columns[column].delimiter = data[DELIMITER]
-                else:
-                    columns[column].delimiter = delimiter
-                if LINK in data:
-                    columns[column].link = data[LINK]
-                if isinstance(data[SOURCE], dict):
-                    if FROM in data[SOURCE]:
-                        columns[column].data = data[SOURCE][FROM]
-                    if GET in data[SOURCE]:
-                        columns[column].gets = data[SOURCE][GET]
-                    if CONDITION in data[SOURCE]:
-                        columns[column].condition = data[SOURCE][CONDITION]
-                    if DELIMITER in data[SOURCE]:
-                        columns[column].delimiter2 = data[SOURCE][DELIMITER]
-                    else:
-                        columns[column].delimiter2 = columns[column].delimiter
-                    if LINK in data[SOURCE]:
-                        columns[column].link = data[SOURCE][LINK]
-                else:
-                    columns[column].data = data[SOURCE]
-            else:
-                columns[column].data = data
+            key = get_column_config(key, column, columns[column], data)
     if spreadsheet and not columns:
         delimiter = spreadsheet.delimiter
         columns = spreadsheet.columns
@@ -197,10 +201,7 @@ def get_config(config_data, param, error_message):
     if param not in config_data:
         log.error(error_message)
     try:
-        if isinstance(config_data[param], str):
-            value_str = config_data[param]
-        else:
-            value_str = str(config_data[param])
+        value_str = str(config_data[param])
     except KeyError:
         log.check_error()
     log.debug(param + ': ' + value_str)
@@ -214,11 +215,7 @@ def get_config_with_default(config_data, param, default_value):
     else:
         value = default_value
         default_info = ' (default value)'
-    if isinstance(value, str):
-        value_str = value
-    else:
-        value_str = str(value)
-    log.debug(param + ': ' + value_str + default_info)
+    log.debug(param + ': ' + str(value) + default_info)
     return value
 
 def get_input(config_data, error_message):
@@ -231,10 +228,7 @@ def get_input(config_data, error_message):
     else:
         log.error(error_message)
     try:
-        if isinstance(config_data[param], str):
-            value_str = config_data[param]
-        else:
-            value_str = str(config_data[param])
+        value_str = str(config_data[param])
     except KeyError:
         log.check_error()
     log.debug(param + ': ' + value_str)
