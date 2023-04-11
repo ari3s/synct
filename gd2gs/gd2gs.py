@@ -27,7 +27,12 @@ from gd2gs.source import SourceData
 
 CONFIG_FILE = 'gd2gs.yaml'
 
+# Warning messages:
 NOT_AVAILABLE = ': data update from input is not available in Google sheet '
+
+# Error messages:
+UNKNOWN_SHEET = 'uknown sheet: '
+UNKNOWN_SOURCE = 'unknown source'
 
 def get_cli_parameters():
     """ Get parameters from CLI and check that they are correct """
@@ -54,7 +59,7 @@ def get_sheets_and_data(source_access, config, selected_sheets):
     else:
         for item in selected_sheets:
             if not item in config.sheets:
-                log.error('uknown sheet: '+ item)
+                log.error(UNKNOWN_SHEET + item)
     sheets_list = []
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
@@ -106,7 +111,7 @@ def main():
     elif config.source == 'JIRA':
         source_access = Jira(config.jira_server, config.jira_token, config.jira_max_results)
     else:
-        log.fatal_error('unkown source')
+        log.fatal_error(UNKNOWN_SOURCE)
     sheets_list, data = get_sheets_and_data(source_access, config, selected_sheets)
     google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
     transform_data(data, google_spreadsheet, config.sheet)

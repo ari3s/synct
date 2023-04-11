@@ -16,9 +16,9 @@ GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
 TOKEN_PICKLE = 'token.pickle'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
+# Error messages:
+CAN_NOT_ACCESS_SHEET = "can't access sheet "
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
-
-DATA_SHEET = 'Data Sheet'
 
 class Gsheet:   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
@@ -111,7 +111,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             if data is not None:
                 self.data[sheet] = data
             else:            # the sheet is not available
-                log.error("can't access sheet " + sheet)
+                log.error(CAN_NOT_ACCESS_SHEET + sheet)
                 remove_sheets.append(sheet)
         for sheet in remove_sheets:
             self.active_sheets.remove(sheet)

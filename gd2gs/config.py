@@ -5,12 +5,10 @@ import yaml
 
 import gd2gs.logger as log
 
-INPUT = 'INPUT'
-
 BUGZILLA = 'BUGZILLA'
+API_KEY = 'API_KEY'
 DOMAIN = 'DOMAIN'
 URL = 'URL'
-API_KEY = 'API_KEY'
 
 JIRA = 'JIRA'
 SERVER = 'SERVER'
@@ -36,28 +34,26 @@ LINK = 'LINK'
 DELIMITER = 'DELIMITER'
 DEFAULT_DELIMITER = ' '
 
+# Error messages - config file:
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
 CONFIG_FILE_UNKNOWN_INPUT = 'input is unknown in the config file'
 
+# Error messages - Bugzilla:
+CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE = 'Bugzilla API key file is not set in the config file'
 CONFIG_FILE_MISSING_BUGZILLA_DOMAIN = 'Bugzilla domain is not set in the config file'
 CONFIG_FILE_MISSING_BUGZILLA_URL = 'Bugzilla URL is not set in the config file'
-CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE = 'Bugzilla API key file is not set in the config file'
 
-CONFIG_FILE_MISSING_JIRA_URL = 'Jira server url is not set in the config file'
+# Error messages - Jira:
 CONFIG_FILE_MISSING_JIRA_TOKEN = 'Jira access token is not set in the config file'
+CONFIG_FILE_MISSING_JIRA_URL = 'Jira server url is not set in the config file'
 
-CONFIG_FILE_MISSING_QUERY = 'query is not set in the config file for the sheet '
+# Error messages - Google spreadsheet:
 CONFIG_FILE_MISSING_KEY = 'missing key in the config file'
-CONFIG_FILE_MORE_KEYS = 'more than one key is set in the config file'
-
-CONFIG_FILE_MISSING_SPREADSHEET = 'spreadsheet_id is not set in the config file'
-CONFIG_FILE_WRONG_SPREADSHEET = 'spreadsheet_id must be a string in the config file'
+CONFIG_FILE_MISSING_QUERY = 'query is not set in the config file for the sheet '
 CONFIG_FILE_MISSING_SHEET = 'no sheet is set in the config file'
-CONFIG_FILE_MISSING_SHEET_COLUMNS = 'missing sheet columns'
-
-LINK_COLUMN_MISSING = 'missing link column'
-LINK_URL_MISSING = 'missing link url'
-LINK_VALUE_MISSING = 'missing link value'
+CONFIG_FILE_MISSING_SPREADSHEET = 'spreadsheet_id is not set in the config file'
+CONFIG_FILE_MORE_KEYS = 'more than one key is set in the config file'
+CONFIG_FILE_WRONG_SPREADSHEET = 'spreadsheet_id must be a string in the config file'
 
 @dataclass
 class Sheet:

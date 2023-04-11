@@ -7,9 +7,9 @@ from bugzilla import Bugzilla
 
 import gd2gs.logger as log
 
+# Error messages:
 BUGZILLA_CONNECTION_FAILURE = 'failed to establish Bugzilla connection'
 BUGZILLA_QUERY_FAILED = 'Bugzilla query failed'
-BUGZILLA_GET_DATA_FAILURE = 'failed to get data from Bugzilla'
 
 class Bzilla:
     """ Bugzilla class """
