@@ -25,8 +25,8 @@ READ_GOOGLE_SHEET = 'read Google sheet: '
 UPDATE_GOOGLE_SHEET = 'update Google sheet: '
 
 # Error messages:
-CAN_NOT_ACCESS_SHEET = "can't access sheet "
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
+WRONG_HEADER = 'wrong header in sheet '
 
 class Gsheet:   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
@@ -103,7 +103,11 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             return None
         # Normalize raw_data to the same length of the header
         header_offset = self.sheets_config[sheet].header_offset
-        header_length = len(raw_data[header_offset])
+        try:
+            header_length = len(raw_data[header_offset])
+        except IndexError:
+            log.error(WRONG_HEADER + sheet)
+            return None
         for raw in range(header_offset+1, len(raw_data)):
             raw_length = len(raw_data[raw])
             if raw_length < header_length:
@@ -118,8 +122,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             data = self.get_sheet(sheet)
             if data is not None:
                 self.data[sheet] = data
-            else:            # the sheet is not available
-                log.error(CAN_NOT_ACCESS_SHEET + sheet)
+            else:            # sheet data are not available
                 remove_sheets.append(sheet)
         for sheet in remove_sheets:
             self.active_sheets.remove(sheet)
