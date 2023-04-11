@@ -16,6 +16,14 @@ GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
 TOKEN_PICKLE = 'token.pickle'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
+# Debug messages:
+ACCESS_GOOGLE_SPREADSHEET = 'access Google spreadsheet'
+GOT_GOOGLE_SPREADSHEET_ACCESS = 'got Google spreadsheet access'
+GOT_GOOGLE_SPREADSHEET_ATTRIBUTES = 'got Google spreadsheet attributes'
+LINK_UPDATE = 'link update: '
+READ_GOOGLE_SHEET = 'read Google sheet: '
+UPDATE_GOOGLE_SHEET = 'update Google sheet: '
+
 # Error messages:
 CAN_NOT_ACCESS_SHEET = "can't access sheet "
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
@@ -41,7 +49,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         for the first time.
         Taken from https://developers.google.com/sheets/api/quickstart/python
         """
-        log.debug('access Google spreadsheet')
+        log.debug(ACCESS_GOOGLE_SPREADSHEET)
         self.creds = None
         if os.path.exists(TOKEN_PICKLE):
             with open(TOKEN_PICKLE, 'rb') as self.token:
@@ -69,14 +77,14 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             # pylint: disable=no-member
             self.spreadsheet_access = build('sheets', 'v4', credentials=self.creds,
                     cache_discovery=False).spreadsheets()
-            log.debug('got Google spreadsheet access')
+            log.debug(GOT_GOOGLE_SPREADSHEET_ACCESS)
         except HttpError as error:
             log.error(error)
         # Get attributes
         try:
             spreadsheet = self.spreadsheet_access.get(spreadsheetId=self.spreadsheet_id, ranges=[],
                     includeGridData=False).execute()
-            log.debug('got Google spreadsheet attributes')
+            log.debug(GOT_GOOGLE_SPREADSHEET_ATTRIBUTES)
         except HttpError as error:
             log.error(error)
         self.sheet_id = {}
@@ -85,7 +93,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def get_sheet(self, sheet):
         """ Read the sheet """
-        log.debug('read Google sheet: ' + sheet)
+        log.debug(READ_GOOGLE_SHEET + sheet)
         try:
             raw_data = self.spreadsheet_access.values().get(
                     spreadsheetId=self.spreadsheet_id,
@@ -119,7 +127,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """
         for sheet in self.active_sheets:
-            log.debug('update Google sheet: ' + sheet)
+            log.debug(UPDATE_GOOGLE_SHEET + sheet)
             body = {
                 'valueInputOption': 'USER_ENTERED',
                 'data': [
@@ -141,7 +149,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def update_column_with_links(self, sheet, column, link):
         """ Update the column in the Google sheet with links """
-        log.debug('link update: sheet: ' + sheet + ' col: ' + str(column))
+        log.debug(LINK_UPDATE + 'sheet: ' + sheet + ' col: ' + str(column))
         header_offset = self.sheets_config[sheet].header_offset
         col = self.data[sheet].columns.get_loc(column)
         rows = []

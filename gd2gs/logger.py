@@ -4,6 +4,9 @@ import logging
 import os
 import sys
 
+# Debug messages:
+SCRIPT_TERMINATED = 'script terminated'
+
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 def setup(verbosity):
@@ -22,14 +25,14 @@ def setup(verbosity):
 def fatal_error(error_message):
     """ Report the error and terminate as failed """
     log.error(error_message)
-    log.debug('script terminated')
+    log.debug(SCRIPT_TERMINATED)
     sys.exit(1)
 
 def check_error():
     """ If error flag is set then teminate the script """
     global e_flag                   # pylint: disable=invalid-name, global-variable-not-assigned
     if e_flag:
-        log.debug('script terminated')
+        log.debug(SCRIPT_TERMINATED)
         sys.exit(1)
 
 def error(error_message):

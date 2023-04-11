@@ -7,6 +7,13 @@ from bugzilla import Bugzilla
 
 import gd2gs.logger as log
 
+API_KEY = 'api_key'
+
+# Debug messages:
+ACCESS_BUGZILLA = 'access Bugzilla'
+ACCESS_BUGZILLA_SUCCESSFUL = 'access Bugzilla - successful'
+BUGZILLA_QUERY = 'Bugzilla query: '
+
 # Error messages:
 BUGZILLA_CONNECTION_FAILURE = 'failed to establish Bugzilla connection'
 BUGZILLA_QUERY_FAILED = 'Bugzilla query failed'
@@ -16,23 +23,23 @@ class Bzilla:
 
     def __init__(self, bzilla_domain, bzilla_url, bzilla_api_key):
         """ Get bugzilla access using API key """
-        log.debug('access Bugzilla')
+        log.debug(ACCESS_BUGZILLA)
         self.path = os.path.expanduser(bzilla_api_key)
         self.config = configparser.ConfigParser()
         self.config.read(self.path)
-        Bugzilla.api_key = self.config.get(bzilla_domain, 'api_key')
+        Bugzilla.api_key = self.config.get(bzilla_domain, API_KEY)
         try:
             self.bzilla_access = Bugzilla(url=bzilla_url)
         except:    # pylint: disable=bare-except
             log.error(BUGZILLA_CONNECTION_FAILURE)
-        log.debug('access Bugzilla - successful')
+        log.debug(ACCESS_BUGZILLA_SUCCESSFUL)
 
 #    def __str__(self):
 #        return str(self.__class__) + ": " + str(self.__dict__)
 
     def get_data(self, query):
         """ Query to Bugzilla """
-        log.debug('Bugzilla query: ' + str(query))
+        log.debug(BUGZILLA_QUERY + str(query))
         try:
             data = self.bzilla_access.query(query)
         except:    # pylint: disable=bare-except

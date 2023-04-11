@@ -27,6 +27,10 @@ from gd2gs.source import SourceData
 
 CONFIG_FILE = 'gd2gs.yaml'
 
+# Debug messages:
+SCRIPT_FINISHED = 'script finished'
+SCRIPT_STARTED = 'script started'
+
 # Warning messages:
 NOT_AVAILABLE = ': data update from input is not available in Google sheet '
 
@@ -101,7 +105,7 @@ def main():
     Get the config file, read source data and write them
     intmissing_key_valueso the google spreadsheet.
     """
-    log.debug('script started')
+    log.debug(SCRIPT_STARTED)
     config_file_name, selected_sheets, test = get_cli_parameters()
     if test:
         log.info('test mode (Google spreadsheet update is disabled)')
@@ -124,4 +128,4 @@ def main():
                         config.sheet[sheet_name].key == column:
                     google_spreadsheet.update_column_with_links(sheet_name, column, \
                             config.sheet[sheet_name].columns[column].link)
-    log.debug('script finished')
+    log.debug(SCRIPT_FINISHED)

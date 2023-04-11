@@ -34,6 +34,11 @@ LINK = 'LINK'
 DELIMITER = 'DELIMITER'
 DEFAULT_DELIMITER = ' '
 
+# Debug messages:
+READ_CONFIG_FILE = 'read config file'
+SHEET = 'sheet'
+SPREADSHEET = 'spreadsheet: '
+
 # Error messages - config file:
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
 CONFIG_FILE_UNKNOWN_INPUT = 'input is unknown in the config file'
@@ -77,7 +82,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
 
     def __init__(self, config_file_name):
         """ Get config data from the config file """
-        log.debug('read config file')
+        log.debug(READ_CONFIG_FILE)
         try:
             with open(config_file_name, encoding='utf8') as config_file:
                 config_data = yaml.safe_load(config_file)
@@ -117,7 +122,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
             log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
 
         spreadsheet = get_sheet_config(config_data, None)
-        log.debug("spreadsheet: " + str(spreadsheet))
+        log.debug(SPREADSHEET + str(spreadsheet))
         if SHEETS in config_data:
             self.sheets = []
             self.sheet = {}
@@ -128,9 +133,9 @@ class Config:   # pylint: disable=too-many-instance-attributes
                 query = get_config(sheet_item, QUERY, CONFIG_FILE_MISSING_QUERY + sheet_item[NAME])
                 self.queries[name] = query
                 self.sheet[name] = get_sheet_config(sheet_item, spreadsheet)
-                log.debug("sheet " + name + ": " + str(self.sheet[name]))
+                log.debug(SHEET + ' ' + name + ': ' + str(self.sheet[name]))
                 if not self.sheet[name].key:
-                    log.error(CONFIG_FILE_MISSING_KEY + ' (sheet: ' + name + ')')
+                    log.error(CONFIG_FILE_MISSING_KEY + ' (' + SHEET + ': ' + name + ')')
         else:
             log.error(CONFIG_FILE_MISSING_SHEET)
 
