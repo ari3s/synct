@@ -120,6 +120,12 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         remove_sheets = []
         for sheet in self.active_sheets:
             data = self.get_sheet(sheet)
+            try:                          # check that the table with header is not empty
+                tmp = data.index.start    # pylint: disable=unused-variable
+            except AttributeError:        # define indexes for empty table with header
+                data.index.start = 0
+                data.index.stop = -1
+                data.index.step = 1
             if data is not None:
                 self.data[sheet] = data
             else:            # sheet data are not available
