@@ -40,4 +40,5 @@ class Jira:   # pylint: disable=too-few-public-methods
         except (JIRAError, AttributeError):
             self.access.close()
             log.error(JIRA_QUERY_FAILED)
+            data = None
         return data

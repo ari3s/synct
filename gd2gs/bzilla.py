@@ -45,6 +45,7 @@ class Bzilla:
         except:    # pylint: disable=bare-except
             self.bzilla_logout()
             log.fatal_error(BUGZILLA_QUERY_FAILED)
+            data = None
         return data
 
     def bzilla_logout(self):
