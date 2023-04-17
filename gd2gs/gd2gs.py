@@ -103,7 +103,7 @@ def transform_data(source, google, sheet_conf):
 def main():
     """
     Get the config file, read source data and write them
-    intmissing_key_valueso the google spreadsheet.
+    into the google spreadsheet.
     """
     log.debug(SCRIPT_STARTED)
     config_file_name, selected_sheets, test = get_cli_parameters()
