@@ -5,6 +5,7 @@ import re
 import pandas as pd
 import gd2gs.logger as log
 
+# Warning messages:
 MISSING_IN_THE_SPREADSHEET = 'missing in Google sheet'
 
 class SourceData:   # pylint: disable=too-few-public-methods
@@ -28,7 +29,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
             for column in sheet_config.columns:
                 try:
                     value = eval('source_item.' + sheet_config.columns[column].data)
-                except:
+                except TypeError:
                     continue
                 if value is None:
                     continue
@@ -60,13 +61,13 @@ class SourceData:   # pylint: disable=too-few-public-methods
                 log.warning(message)
         return missing_keys
 
-def trans_value(config, conf_item_list, source_item):  #pylint: disable=unused-argument
+def trans_value(config, conf_item_keys_list, source_item):  #pylint: disable=unused-argument
     """ Get and transform value from Jira to fit with other formats """
     value = []
-    for key in conf_item_list:
+    for key in conf_item_keys_list:
         try:
             d_value = eval('source_item.' + config.data + '.' + key)
-        except:
+        except TypeError:
             continue
         if isinstance(d_value, list):
             for item in d_value:
@@ -79,32 +80,36 @@ def trans_value(config, conf_item_list, source_item):  #pylint: disable=unused-a
             value.append(e_value)
     return value
 
+def parse_gets(gets, config, conf_item_keys_list, conf_item, s_data):
+    """ Parse gets """
+    gets_item = ''
+    flag = False
+    for key in conf_item_keys_list:
+        if key in s_data:
+            if re.match(conf_item[key], s_data[key]):
+                if flag:
+                    gets_item = gets_item + config.delimiter2
+                gets_item = gets_item + s_data[key]
+                flag = True
+            else:
+                flag = False
+                break
+    if flag:
+        gets.append(gets_item)
+    return gets
+
 def handle_gets(value, config, source_item):
     """ Handle gets """
-    tmp = []
+    gets = []
     for conf_item in config.gets:
-        conf_item_list = list(conf_item.keys())
+        conf_item_keys_list = list(conf_item.keys())
         if type(value).__name__ not in dir(builtins):  # jira.resources.PropertyHolder object
-            value = trans_value(config, conf_item_list, source_item)
+            value = trans_value(config, conf_item_keys_list, source_item)
         for s_data in value:
-            if config.condition:
-                if not is_subset(s_data, config.condition):
-                    continue
-            tmp_value = ''
-            flag = False
-            for key in conf_item_list:
-                if key in s_data:
-                    if re.match(conf_item[key], s_data[key]):
-                        if flag:
-                            tmp_value = tmp_value + config.delimiter2
-                        tmp_value = tmp_value + s_data[key]
-                        flag = True
-                    else:
-                        flag = False
-                        break
-            if flag:
-                tmp.append(tmp_value)
-    return tmp
+            if config.condition and not is_subset(s_data, config.condition):
+                continue
+            gets = parse_gets(gets, config, conf_item_keys_list, conf_item, s_data)
+    return gets
 
 def evaluate(value, config, source_item, column_is_key):
     """ Evaluate getting values and return a proper string """

@@ -21,7 +21,7 @@ class Jira:   # pylint: disable=too-few-public-methods
         """ Access Jira """
         log.debug(GET_JIRA_TOKEN)
         try:
-            with open(os.path.expanduser(token_file_name), 'r') as token_file:
+            with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
                 token = token_file.read().rstrip('\n')
         except OSError as exception:
             log.error(exception)
