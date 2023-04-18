@@ -168,13 +168,15 @@ Bugzilla access is handled using API key as described at [https://bugzilla.readt
 The script uses REST API that requires an API token. The token can be generated from your Jira account according to the guidance here: [https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html). The stored token file must be referred in the YAML configuration file of the script.
 
 ### Google
-As there is used the Google spreadsheet to write data, the script requests an authorized access using OAuth JSON key file which can be obtained according to instructions here: [https://developers.google.com/workspace/guides/create-credentials#service-account](https://developers.google.com/workspace/guides/create-credentials#service-account). Sensitive scopes which are set through *OAuth consent screen* should allow this option:
+As there is used the Google spreadsheet to write data, the script requests an authorized access using OAuth JSON key file which can be obtained according to instructions here: [https://developers.google.com/workspace/guides/create-credentials#service-account](https://developers.google.com/workspace/guides/create-credentials#service-account).
+
+*Enabled APIs & Services* should be *Cloud Identity-Aware Proxy API*, *Google Sheets API* and *Token Service API*. Sensitive scopes which are set through *OAuth consent screen* should allow this option:
 
 | API               | Scope                 | User-facing description |
 | ----------------- | --------------------- | ----------------------- |
 | Google Sheets API | .../auth/spreadsheets | See, edit, create, and delete all your Google Sheets spreadsheets |
 
-An easy way to provide service account credentials is by setting the GOOGLE_APPLICATION_CREDENTIALS environment variable; the script will use the value of this variable to find the service account key JSON file.
+The type of OAuth client ID that is set in *Credentials* menu should be *Desktop*. OAuth client JSON file with service account credentials should be downloaded and stored locally. An easy way to provide service account credentials is by setting the GOOGLE_APPLICATION_CREDENTIALS environment variable with the JSON file name. The script will use the value of this variable to find the service account key JSON file.
 
 ## Support
 Issues can be raised by the standard way in this GitHub project.
