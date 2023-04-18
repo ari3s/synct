@@ -1,5 +1,5 @@
 Name:		gd2gs
-Version:	0.2.0
+Version:	0.3.0
 Release:	%autorelease
 Summary:	Get data to Google sheets
 
