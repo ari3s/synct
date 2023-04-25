@@ -115,7 +115,8 @@ def main():
     elif config.source == 'JIRA':
         source_access = Jira(config.jira_server, config.jira_token, config.jira_max_results)
     else:
-        log.fatal_error(UNKNOWN_SOURCE)
+        log.error(UNKNOWN_SOURCE)
+    log.check_error()    # if a source error occured, terminate the script
     sheets_list, data = get_sheets_and_data(source_access, config, selected_sheets)
     google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
     transform_data(data, google_spreadsheet, config.sheet)

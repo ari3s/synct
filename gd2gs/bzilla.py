@@ -30,9 +30,9 @@ class Bzilla:
         Bugzilla.api_key = self.config.get(bzilla_domain, API_KEY)
         try:
             self.bzilla_access = Bugzilla(url=bzilla_url)
+            log.debug(ACCESS_BUGZILLA_SUCCESSFUL)
         except:    # pylint: disable=bare-except
             log.error(BUGZILLA_CONNECTION_FAILURE)
-        log.debug(ACCESS_BUGZILLA_SUCCESSFUL)
 
 #    def __str__(self):
 #        return str(self.__class__) + ": " + str(self.__dict__)
@@ -44,7 +44,7 @@ class Bzilla:
             data = self.bzilla_access.query(query)
         except:    # pylint: disable=bare-except
             self.bzilla_logout()
-            log.fatal_error(BUGZILLA_QUERY_FAILED)
+            log.error(BUGZILLA_QUERY_FAILED)
             data = None
         return data
 

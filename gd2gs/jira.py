@@ -25,9 +25,9 @@ class Jira:   # pylint: disable=too-few-public-methods
                 token = token_file.read().rstrip('\n')
         except OSError as exception:
             log.error(exception)
-        log.debug(ACCESS_JIRA)
         try:
             self.access = JIRA(options={'server': url}, token_auth=token)
+            log.debug(ACCESS_JIRA)
         except (JIRAError, AttributeError):
             log.error(JIRA_AUTH_FAILED)
         self.max_results = max_results
