@@ -88,11 +88,12 @@ Jira structured data including custom field IDs and names can be found in XML da
 | `LINK`           | It can be used in columns. It contains URL that is used as a prefix of values. If the column is key column, link format is used. |
 | `MAX_RESULTS`    | It defines maximum number of obtained items from Jira for each query. It can be only a part of `JIRA` section. |
 | `NAME`           | It defines name of each sheet. |
+| `OPTIONAL`       | When the key with this specific column value is missing it is not reported as a warning. The value can be a regular expression. |
 | `QUERY`          | Query definition in each sheet. It is specific per input. |
 | `SERVER`         | URL of Jira server. It can be only a part of `JIRA` section. |
 | `SHEET_COLUMNS`  | Definition of columns names and their relation to data identifiers obtained from the input. It can be either global or specific in each sheet. |
 | `SHEETS`         | List of sheets that should be addressed in the target Google spreadsheet. |
-| `SOURCE`         | It defines columns name relation to a data identifier obtained from the input. It is used when more reserved words are belonging to the specific column, like `CONDITION`, `FROM`, `GET`, `KEY`, `LINK`. |
+| `SOURCE`         | It defines columns name relation to a data identifier obtained from the input. It is used when more reserved words are belonging to the specific column, like `CONDITION`, `FROM`, `GET`, `KEY`, `LINK` or `OPTIONAL`. |
 | `SPREADSHEET_ID` | ID of the target Google spreadsheet. |
 | `TOKEN`          | File name that contains token to access Jira. |
 | `URL`            | Bugzilla URL. |

@@ -96,7 +96,7 @@ def transform_data(source, google, sheet_conf):
                     google.data[sheet_name].loc[row, (column)] = \
                             source[sheet_name].data.loc[key_index, (column)]
         missing_key_values = missing_key_values + \
-                source[sheet_name].check_missing_keys(sheet_name, key)
+                source[sheet_name].check_missing_keys(sheet_name, key, sheet_conf[sheet_name])
     if missing_key_values:
         pyperclip.copy('\n'.join(map(str, missing_key_values)))
 

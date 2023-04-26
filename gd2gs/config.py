@@ -31,6 +31,7 @@ GET = 'GET'
 CONDITION = 'CONDITION'
 KEY = 'KEY'
 LINK = 'LINK'
+OPTIONAL = 'OPTIONAL'
 DELIMITER = 'DELIMITER'
 DEFAULT_DELIMITER = ' '
 
@@ -74,6 +75,7 @@ class Column:
     data: str = None
     gets: dict = None
     condition: dict = None
+    optional: str = None
     link: str = None
     delimiter: str = DEFAULT_DELIMITER
 
@@ -152,6 +154,8 @@ def get_sheet_config(config_data, spreadsheet):
                     if DELIMITER in c_data else delimiter
             if LINK in c_data:
                 col.link = c_data[LINK]
+            if OPTIONAL in c_data:
+                col.optional = c_data[OPTIONAL]
             get_source_config(col, c_data)
         else:
             col.data = c_data
@@ -169,6 +173,8 @@ def get_sheet_config(config_data, spreadsheet):
                 col.condition = c_data[SOURCE][CONDITION]
             if LINK in c_data[SOURCE]:
                 col.link = c_data[SOURCE][LINK]
+            if OPTIONAL in c_data[SOURCE]:
+                col.optional = c_data[SOURCE][OPTIONAL]
         else:
             col.data = c_data[SOURCE]
 

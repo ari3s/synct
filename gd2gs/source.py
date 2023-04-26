@@ -19,6 +19,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
         self.key_dict = {}
         self.used_key = {}
         source_data = source.get_data(query)
+        log.check_error()
         converted_data = []
         columns_list = list(sheet_config.columns.keys())
         index = 0
@@ -51,11 +52,21 @@ class SourceData:   # pylint: disable=too-few-public-methods
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
 
-    def check_missing_keys(self, sheet, key):
+    def check_missing_keys(self, sheet, key, sheet_config):
         """ Check missing keys in source data """
         missing_keys = []
         for key_value, used in self.used_key.items():
             if not used:
+                key_index = self.key_dict[key_value]
+                skip = False
+                for column in self.data.columns:
+                    option = sheet_config.columns[column].optional
+                    if option:
+                        if re.match(option, self.data.loc[key_index, (column)]):
+                            skip = True
+                            break
+                if skip:
+                    continue
                 missing_keys.append(key_value)
                 message = key + ': ' + key_value + ': ' + MISSING_IN_THE_SPREADSHEET + ' ' + sheet
                 log.warning(message)
