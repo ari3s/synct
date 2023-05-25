@@ -18,6 +18,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Debug messages:
 ACCESS_GOOGLE_SPREADSHEET = 'access Google spreadsheet'
+ADD_ROWS_GOOGLE_SHEET = 'add rows in Google sheet: '
 GOT_GOOGLE_SPREADSHEET_ACCESS = 'got Google spreadsheet access'
 GOT_GOOGLE_SPREADSHEET_ATTRIBUTES = 'got Google spreadsheet attributes'
 LINK_UPDATE = 'link update: '
@@ -31,6 +32,7 @@ WRONG_HEADER = 'wrong header in sheet '
 class Gsheet:   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
     data = {}
+    rows = {}
     active_sheets = []
 
     def __init__(self, spreadsheet_id, sheets, sheets_config):
@@ -126,14 +128,45 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 data = None
             if data is not None:
                 self.data[sheet] = data
+                self.rows[sheet] = self.data[sheet].index.stop - self.data[sheet].index.start + 1
             else:            # sheet data are not available
                 remove_sheets.append(sheet)
         for sheet in remove_sheets:
             self.active_sheets.remove(sheet)
 
+    def insert_rows(self, sheet, start_row, inserted_rows):
+        """ Insert empty rows in the spreadsheet """
+        log.debug(ADD_ROWS_GOOGLE_SHEET + sheet)
+        body = {
+            "requests": [
+                {
+                    "insertDimension": {
+                        "range": {
+                            "sheetId": self.sheet_id[sheet],
+                            "dimension": "ROWS",
+                            "startIndex": start_row,
+                            "endIndex": start_row+inserted_rows
+                        },
+                        "inheritFromBefore": True
+                    }
+                }
+            ]
+        }
+        try:
+            response = self.spreadsheet_access.batchUpdate(
+                    spreadsheetId=self.spreadsheet_id, body=body).execute()
+            log.debug(response)
+        except HttpError as error:
+            log.error(error)
+            return
+
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """
         for sheet in self.active_sheets:
+            if self.data[sheet].index.stop-self.data[sheet].index.start+1 > self.rows[sheet]:
+                self.insert_rows(sheet, \
+                        self.rows[sheet]+self.sheets_config[sheet].header_offset, \
+                        self.data[sheet].index.stop-self.rows[sheet]+1)
             log.debug(UPDATE_GOOGLE_SHEET + sheet)
             body = {
                 'valueInputOption': 'USER_ENTERED',

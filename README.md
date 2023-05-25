@@ -49,7 +49,7 @@ python-bugzilla
 
 ## Usage
 ```
-gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t]
+gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t] [-a]
 ```
 
 The script updates data rows in the Google spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
@@ -57,6 +57,8 @@ The script updates data rows in the Google spreadsheet based on key values. If a
 The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadsheet with sheet names and related queries, the column names with their related items, and additional parameters that define the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `gd2gs.yaml` file in the working directory.
 
 The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
+
+The `-a` parameter enables adding missing rows into the spreadsheet. The added rows are placed in the end of the particular sheet.
 
 By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include info level, and `-vv` includes debug level. The `-q` parameter reduces the logging to errors only.
 

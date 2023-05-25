@@ -51,9 +51,11 @@ def get_cli_parameters():
             default=0, dest='verbosity', help='quiet output (show errors only)')
     parser.add_argument('-t', '--test', action="store_true",
             help='disable Google spreadsheet update')
+    parser.add_argument('-a', '--add', action="store_true",
+            help='enable to add missing items into the Google spreadsheet')
     args = parser.parse_args()
     log.setup(args.verbosity)
-    return args.config, args.sheet, args.test
+    return args.config, args.sheet, args.test, args.add
 
 def get_sheets_and_data(source_access, config, selected_sheets):
     """ Get valid sheets list and source data """
@@ -71,10 +73,19 @@ def get_sheets_and_data(source_access, config, selected_sheets):
             sheets_list.append(sheet_name)
     return sheets_list, source_data
 
-def transform_data(source, google, sheet_conf):
+def update_row(s_sheet, s_key_index, g_sheet, g_row):
+    """ Update the Google row with source data """
+    for column in g_sheet.columns:
+        if column in s_sheet.data.columns:
+            g_sheet.loc[g_row, (column)] = \
+                    s_sheet.data.loc[s_key_index, (column)]
+        else:
+            g_sheet.loc[g_row, (column)] = ""
+
+def transform_data(source, google, sheet_conf, test_mode, enable_add):
     """ Copy transformed data from source to the target Google spreadsheet """
     key_google_dict = {}
-    missing_key_values = []
+    missing_all_google_key_values = []
     for sheet_name in google.active_sheets:
         key = sheet_conf[sheet_name].key
         key_google_dict[sheet_name] = {}
@@ -91,14 +102,18 @@ def transform_data(source, google, sheet_conf):
             else:
                 log.warning(key + ': ' + key_value + NOT_AVAILABLE + sheet_name)
                 continue
-            for column in google.data[sheet_name].columns:
-                if column in source[sheet_name].data.columns:
-                    google.data[sheet_name].loc[row, (column)] = \
-                            source[sheet_name].data.loc[key_index, (column)]
-        missing_key_values = missing_key_values + \
-                source[sheet_name].check_missing_keys(sheet_name, key, sheet_conf[sheet_name])
-    if missing_key_values:
-        pyperclip.copy('\n'.join(map(str, missing_key_values)))
+            update_row(source[sheet_name], key_index, google.data[sheet_name], row)
+        missing_google_keys = source[sheet_name].check_missing_keys(
+                sheet_name, key, sheet_conf[sheet_name])
+        missing_all_google_key_values = missing_all_google_key_values + missing_google_keys
+        if enable_add and not test_mode:
+            for key_value in missing_google_keys:
+                log.info("missing row with the key " + key_value \
+                        + " will be added into the sheet " + sheet_name)
+                update_row(source[sheet_name], source[sheet_name].key_dict[key_value], \
+                        google.data[sheet_name], len(google.data[sheet_name]))
+    if missing_all_google_key_values:
+        pyperclip.copy('\n'.join(map(str, missing_all_google_key_values)))
 
 def main():
     """
@@ -106,7 +121,7 @@ def main():
     into the google spreadsheet.
     """
     log.debug(SCRIPT_STARTED)
-    config_file_name, selected_sheets, test = get_cli_parameters()
+    config_file_name, selected_sheets, test, add = get_cli_parameters()
     if test:
         log.info('test mode (Google spreadsheet update is disabled)')
     config = Config(config_file_name)
@@ -119,7 +134,7 @@ def main():
     log.check_error()    # if a source error occured, terminate the script
     sheets_list, data = get_sheets_and_data(source_access, config, selected_sheets)
     google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
-    transform_data(data, google_spreadsheet, config.sheet)
+    transform_data(data, google_spreadsheet, config.sheet, test, add)
 
     if not test:
         google_spreadsheet.update_spreadsheet()
