@@ -33,6 +33,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
     data = {}
     rows = {}
+    remove_rows = {}
     active_sheets = []
 
     def __init__(self, spreadsheet_id, sheets, sheets_config):
@@ -129,6 +130,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             if data is not None:
                 self.data[sheet] = data
                 self.rows[sheet] = self.data[sheet].index.stop - self.data[sheet].index.start + 1
+                self.remove_rows[sheet] = []
             else:            # sheet data are not available
                 remove_sheets.append(sheet)
         for sheet in remove_sheets:
@@ -158,7 +160,29 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
             log.debug(response)
         except HttpError as error:
             log.error(error)
-            return
+
+    def delete_row(self, sheet, row):
+        """ Delete one row in the spreadsheet """
+        body = {
+            "requests": [
+                {
+                    "deleteDimension": {
+                        "range": {
+                            "sheetId": self.sheet_id[sheet],
+                            "dimension": "ROWS",
+                            "startIndex": row-1,
+                            "endIndex": row
+                        }
+                    }
+                }
+            ]
+        }
+        try:
+            response = self.spreadsheet_access.batchUpdate(
+                    spreadsheetId=self.spreadsheet_id, body=body).execute()
+            log.debug(response)
+        except HttpError as error:
+            log.error(error)
 
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """

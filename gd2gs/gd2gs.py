@@ -3,16 +3,6 @@ gd2gs
 
 The script gets data from the particular source and copies the data in Google
 spreadsheet as it is defined in the config file.
-
-usage: gd2gs [-h] [-c CONFIG] [-v] [-q] [-t]
-
-options:
-  -h, --help            show this help message and exit
-  -c CONFIG, --config CONFIG
-                        config file (default: gd2gs.yaml)
-  -v, --verbose         verbose output (repeat for increased verbosity)
-  -q, --quiet           quiet output (show errors only)
-  -t, --test            disable Google spreadsheet update
 """
 import argparse
 import pyperclip
@@ -34,6 +24,9 @@ SCRIPT_STARTED = 'script started'
 # Warning messages:
 NOT_AVAILABLE = ': data update from input is not available in Google sheet '
 
+# Info messages:
+TEST_MODE = 'test mode (Google spreadsheet update is disabled)'
+
 # Error messages:
 UNKNOWN_SHEET = 'uknown sheet: '
 UNKNOWN_SOURCE = 'unknown source'
@@ -53,9 +46,11 @@ def get_cli_parameters():
             help='disable Google spreadsheet update')
     parser.add_argument('-a', '--add', action="store_true",
             help='enable to add missing items into the Google spreadsheet')
+    parser.add_argument('-r', '--remove', action="store_true",
+            help='enable removing items in the Google spreadsheet')
     args = parser.parse_args()
     log.setup(args.verbosity)
-    return args.config, args.sheet, args.test, args.add
+    return args
 
 def get_sheets_and_data(source_access, config, selected_sheets):
     """ Get valid sheets list and source data """
@@ -73,26 +68,26 @@ def get_sheets_and_data(source_access, config, selected_sheets):
             sheets_list.append(sheet_name)
     return sheets_list, source_data
 
-def update_row(s_sheet, s_key_index, g_sheet, g_row):
+def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row):
     """ Update the Google row with source data """
     for column in g_sheet.columns:
         if column in s_sheet.data.columns:
-            g_sheet.loc[g_row, (column)] = \
-                    s_sheet.data.loc[s_key_index, (column)]
+            g_sheet.loc[g_row, (column)] = s_sheet.data.loc[s_key_index, (column)]
         else:
             g_sheet.loc[g_row, (column)] = ""
 
-def transform_data(source, google, sheet_conf, test_mode, enable_add):
+def transform_data(source, google, sheet_conf, args):
     """ Copy transformed data from source to the target Google spreadsheet """
     key_google_dict = {}
     missing_all_google_key_values = []
     for sheet_name in google.active_sheets:
         key = sheet_conf[sheet_name].key
+        # Identify keys in the sheet
         key_google_dict[sheet_name] = {}
         for row in range(google.data[sheet_name].index.start, google.data[sheet_name].index.stop,
                 google.data[sheet_name].index.step):
             key_google_dict[sheet_name][google.data[sheet_name][key][row]] = row
-
+        # Update Google sheet data
         for row in range(google.data[sheet_name].index.start, google.data[sheet_name].index.stop,
                 google.data[sheet_name].index.step):
             key_value = str(google.data[sheet_name][key][row])
@@ -100,20 +95,38 @@ def transform_data(source, google, sheet_conf, test_mode, enable_add):
                 key_index = source[sheet_name].key_dict[key_value]
                 source[sheet_name].used_key[key_value] = True
             else:
-                log.warning(key + ': ' + key_value + NOT_AVAILABLE + sheet_name)
+                message = key + ': ' + key_value + NOT_AVAILABLE + sheet_name
+                if args.remove:
+                    log.info(message)
+                else:
+                    log.warning(message)
+                google.remove_rows[sheet_name].append(row)
                 continue
-            update_row(source[sheet_name], key_index, google.data[sheet_name], row)
-        missing_google_keys = source[sheet_name].check_missing_keys(
-                sheet_name, key, sheet_conf[sheet_name])
-        missing_all_google_key_values = missing_all_google_key_values + missing_google_keys
-        if enable_add and not test_mode:
+            update_google_row_data(source[sheet_name], key_index, google.data[sheet_name], row)
+        # Identify missing keys in the Google sheet which data are available from the source
+        missing_google_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
+                sheet_conf[sheet_name], args.add)
+        if args.add and not args.test:
             for key_value in missing_google_keys:
-                log.info("missing row with the key " + key_value \
-                        + " will be added into the sheet " + sheet_name)
-                update_row(source[sheet_name], source[sheet_name].key_dict[key_value], \
+                update_google_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
                         google.data[sheet_name], len(google.data[sheet_name]))
+        missing_all_google_key_values = missing_all_google_key_values + missing_google_keys
+
     if missing_all_google_key_values:
         pyperclip.copy('\n'.join(map(str, missing_all_google_key_values)))
+
+def update_google_data(google, sheets_list, sheet_conf, enable_remove):
+    """ Update Google spreadsheet """
+    google.update_spreadsheet()
+    for sheet_name in sheets_list:
+        for column in sheet_conf[sheet_name].columns:
+            if sheet_conf[sheet_name].columns[column].link and \
+                    sheet_conf[sheet_name].key == column:
+                google.update_column_with_links(sheet_name, column, \
+                        sheet_conf[sheet_name].columns[column].link)
+        if enable_remove:
+            for row in sorted(google.remove_rows[sheet_name], reverse=True):
+                google.delete_row(sheet_name, row+sheet_conf[sheet_name].header_offset+2)
 
 def main():
     """
@@ -121,10 +134,10 @@ def main():
     into the google spreadsheet.
     """
     log.debug(SCRIPT_STARTED)
-    config_file_name, selected_sheets, test, add = get_cli_parameters()
-    if test:
-        log.info('test mode (Google spreadsheet update is disabled)')
-    config = Config(config_file_name)
+    args = get_cli_parameters()
+    if args.test:
+        log.info(TEST_MODE)
+    config = Config(args.config)
     if config.source == 'BUGZILLA':
         source_access = Bzilla(config.bugzilla_domain, config.bugzilla_url, config.bugzilla_api_key)
     elif config.source == 'JIRA':
@@ -132,16 +145,9 @@ def main():
     else:
         log.error(UNKNOWN_SOURCE)
     log.check_error()    # if a source error occured, terminate the script
-    sheets_list, data = get_sheets_and_data(source_access, config, selected_sheets)
+    sheets_list, data = get_sheets_and_data(source_access, config, args.sheet)
     google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
-    transform_data(data, google_spreadsheet, config.sheet, test, add)
-
-    if not test:
-        google_spreadsheet.update_spreadsheet()
-        for sheet_name in sheets_list:
-            for column in config.sheet[sheet_name].columns:
-                if config.sheet[sheet_name].columns[column].link and \
-                        config.sheet[sheet_name].key == column:
-                    google_spreadsheet.update_column_with_links(sheet_name, column, \
-                            config.sheet[sheet_name].columns[column].link)
+    transform_data(data, google_spreadsheet, config.sheet, args)
+    if not args.test:
+        update_google_data(google_spreadsheet, sheets_list, config.sheet, args.remove)
     log.debug(SCRIPT_FINISHED)

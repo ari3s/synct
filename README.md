@@ -49,7 +49,7 @@ python-bugzilla
 
 ## Usage
 ```
-gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t] [-a]
+gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t] [-a] [-r]
 ```
 
 The script updates data rows in the Google spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
@@ -58,7 +58,9 @@ The `-c CONFIG` parameter defines the name of the YAML configuration file contai
 
 The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
 
-The `-a` parameter enables adding missing rows into the spreadsheet. The added rows are placed in the end of the particular sheet.
+The `-a` parameter enables the addition of missing rows to the spreadsheet. The added rows are placed at the end of the specific sheet.
+
+The `-r` parameter enables the removal of rows in the spreadsheet. It is related to rows whose values are not retrieved from a source. For example, the script is configured to collect and update open bugs from Bugzilla. The `-r` parameter allows for the deletion of rows that contain bugs that have not been retrieved, meaning those that have been closed. Without the parameter, such rows are not updated, and a warning is reported by the script.
 
 By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include info level, and `-vv` includes debug level. The `-q` parameter reduces the logging to errors only.
 

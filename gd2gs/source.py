@@ -52,7 +52,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
 
-    def check_missing_keys(self, sheet, key, sheet_config):
+    def check_missing_keys(self, sheet, key, sheet_config, enable_add):
         """ Check missing keys in source data """
         missing_keys = []
         for key_value, used in self.used_key.items():
@@ -69,7 +69,10 @@ class SourceData:   # pylint: disable=too-few-public-methods
                     continue
                 missing_keys.append(key_value)
                 message = key + ': ' + key_value + ': ' + MISSING_IN_THE_SPREADSHEET + ' ' + sheet
-                log.warning(message)
+                if enable_add:
+                    log.info(message)
+                else:
+                    log.warning(message)
         return missing_keys
 
 def trans_value(config, conf_item_keys_list, source_item):  #pylint: disable=unused-argument
