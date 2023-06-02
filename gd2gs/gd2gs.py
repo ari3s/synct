@@ -7,6 +7,7 @@ spreadsheet as it is defined in the config file.
 import argparse
 import pyperclip
 
+import pandas as pd
 import gd2gs.logger as log
 
 from gd2gs.config import Config
@@ -74,7 +75,11 @@ def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row):
         if column in s_sheet.data.columns:
             g_sheet.loc[g_row, (column)] = s_sheet.data.loc[s_key_index, (column)]
         else:
-            g_sheet.loc[g_row, (column)] = ""
+            try:
+                if pd.isnull(g_sheet.loc[g_row, (column)]):
+                    g_sheet.loc[g_row, (column)] = ""    # fix undefined value
+            except KeyError:                             # fix undefined variable
+                g_sheet.loc[g_row, (column)] = ""
 
 def transform_data(source, google, sheet_conf, args):
     """ Copy transformed data from source to the target Google spreadsheet """

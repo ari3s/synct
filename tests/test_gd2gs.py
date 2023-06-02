@@ -5,7 +5,7 @@ from flexmock import flexmock
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from gd2gs.config import Sheet
+from gd2gs.config import Column, Sheet
 from gd2gs.source import SourceData
 from gd2gs.gsheet import Gsheet
 from gd2gs.gd2gs import transform_data
@@ -17,13 +17,20 @@ TEST_JIRA_DATA = DATA_DIR / "test_jira_data.txt"
 TEST_SOURCE_GOOGLE_DATA = DATA_DIR / "test_source_google_data.txt"
 TEST_TARGET_GOOGLE_DATA = DATA_DIR / "test_target_google_data.txt"
 
-class TestWdsClass():    # pylint: disable=too-few-public-methods
+class Args:
+    """ Arguments """
+    add = None
+    remove = None
+    test = None
+
+class TestWdsClass:    # pylint: disable=too-few-public-methods
     """ Testing class """
 
     def test_data(self):
         """ Function testing with fake data from Excel spreadsheet """
-
+        args = Args()
         key = "ISSUE"
+
         jira = {}
 
         jira_data = pd.read_table(TEST_JIRA_DATA)
@@ -41,8 +48,12 @@ class TestWdsClass():    # pylint: disable=too-few-public-methods
         flexmock(Gsheet, active_sheets = ["TEST"], data = data_spreadsheet,\
                  __init__ = None)
         google = Gsheet('', '', '')
+
         sheet_conf = {}
         sheet_conf["TEST"] = Sheet(0, {}, {}, key)
-        transform_data(jira, google, sheet_conf)
+        for column in jira_data:
+            sheet_conf["TEST"].columns[column] = Column
+
+        transform_data(jira, google, sheet_conf, args)
         assert_frame_equal(google.data["TEST"],
                            pd.read_fwf(TEST_TARGET_GOOGLE_DATA), check_dtype=False)
