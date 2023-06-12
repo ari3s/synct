@@ -34,9 +34,6 @@ class Bzilla:
         except:    # pylint: disable=bare-except
             log.error(BUGZILLA_CONNECTION_FAILURE)
 
-#    def __str__(self):
-#        return str(self.__class__) + ": " + str(self.__dict__)
-
     def get_data(self, query):
         """ Query to Bugzilla """
         log.debug(BUGZILLA_QUERY + str(query))

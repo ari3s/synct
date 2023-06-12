@@ -1,4 +1,4 @@
-""" Congig class and operations """
+""" Config class and operations """
 from dataclasses import dataclass
 
 import yaml
@@ -24,6 +24,8 @@ NAME = 'NAME'
 
 HEADER_OFFSET = 'HEADER_OFFSET'
 DEFAULT_HEADER_OFFSET = 0
+DEFAULT_COLUMNS = 'DEFAULT_COLUMNS'
+INIT_DEFAULT_COLUMNS = False
 SHEET_COLUMNS = 'SHEET_COLUMNS'
 SOURCE = 'SOURCE'
 FROM = 'FROM'
@@ -66,6 +68,7 @@ class Sheet:
     """ Sheet data class """
     header_offset: int = DEFAULT_HEADER_OFFSET
     delimiter: str = DEFAULT_DELIMITER
+    default_columns: bool = INIT_DEFAULT_COLUMNS
     columns: dict = None
     key: str = None
 
@@ -143,65 +146,70 @@ class Config:   # pylint: disable=too-many-instance-attributes
 
 def get_sheet_config(config_data, spreadsheet):
     """ Get Google sheet params """
-
-    def get_column_config(key, column, col, c_data):
-        if isinstance(c_data, dict):
-            if KEY in c_data:
-                if key:
-                    log.error(CONFIG_FILE_MORE_KEYS)
-                key = column
-            col.delimiter = c_data[DELIMITER] \
-                    if DELIMITER in c_data else delimiter
-            if LINK in c_data:
-                col.link = c_data[LINK]
-            if OPTIONAL in c_data:
-                col.optional = c_data[OPTIONAL]
-            get_source_config(col, c_data)
-        else:
-            col.data = c_data
-        return key
-
-    def get_source_config(col, c_data):
-        if isinstance(c_data[SOURCE], dict):
-            col.delimiter2 = c_data[SOURCE][DELIMITER] \
-                    if DELIMITER in c_data[SOURCE] else col.delimiter
-            if FROM in c_data[SOURCE]:
-                col.data = c_data[SOURCE][FROM]
-            if GET in c_data[SOURCE]:
-                col.gets = c_data[SOURCE][GET]
-            if CONDITION in c_data[SOURCE]:
-                col.condition = c_data[SOURCE][CONDITION]
-            if LINK in c_data[SOURCE]:
-                col.link = c_data[SOURCE][LINK]
-            if OPTIONAL in c_data[SOURCE]:
-                col.optional = c_data[SOURCE][OPTIONAL]
-        else:
-            col.data = c_data[SOURCE]
-
     key = None
     columns = {}
     if spreadsheet:
         header_offset = spreadsheet.header_offset
         delimiter = spreadsheet.delimiter
+        default_columns = spreadsheet.default_columns
         key = spreadsheet.key
         for column in spreadsheet.columns:
             columns[column] = spreadsheet.columns[column]
-    else:
+    else:    # global parameters
         header_offset = DEFAULT_HEADER_OFFSET
         delimiter = DEFAULT_DELIMITER
+        default_columns = INIT_DEFAULT_COLUMNS
     if HEADER_OFFSET in config_data:
         header_offset = int(config_data[HEADER_OFFSET])
     if DELIMITER in config_data:
         delimiter = config_data[DELIMITER]
+    if DEFAULT_COLUMNS in config_data:
+        default_columns = config_data[DEFAULT_COLUMNS]
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()
-            key = get_column_config(key, column, columns[column], data)
+            key = get_column_config(key, column, columns[column], data, delimiter)
     if spreadsheet and not columns:
         delimiter = spreadsheet.delimiter
         columns = spreadsheet.columns
         key = spreadsheet.key
-    return Sheet(header_offset, delimiter, columns, key)
+    return Sheet(header_offset, delimiter, default_columns, columns, key)
+
+def get_column_config(key, column, col, c_data, delimiter):
+    """ Get column configuration """
+    if isinstance(c_data, dict):
+        if KEY in c_data:
+            if key:
+                log.error(CONFIG_FILE_MORE_KEYS)
+            key = column
+        col.delimiter = c_data[DELIMITER] \
+               if DELIMITER in c_data else delimiter
+        if LINK in c_data:
+            col.link = c_data[LINK]
+        if OPTIONAL in c_data:
+            col.optional = c_data[OPTIONAL]
+        get_source_config(col, c_data)
+    else:
+        col.data = c_data
+    return key
+
+def get_source_config(col, c_data):
+    """ Get configuration of source data handling """
+    if isinstance(c_data[SOURCE], dict):
+        col.delimiter2 = c_data[SOURCE][DELIMITER] \
+                if DELIMITER in c_data[SOURCE] else col.delimiter
+        if FROM in c_data[SOURCE]:
+            col.data = c_data[SOURCE][FROM]
+        if GET in c_data[SOURCE]:
+            col.gets = c_data[SOURCE][GET]
+        if CONDITION in c_data[SOURCE]:
+            col.condition = c_data[SOURCE][CONDITION]
+        if LINK in c_data[SOURCE]:
+            col.link = c_data[SOURCE][LINK]
+        if OPTIONAL in c_data[SOURCE]:
+            col.optional = c_data[SOURCE][OPTIONAL]
+    else:
+        col.data = c_data[SOURCE]
 
 def get_config(config_data, param, error_message):
     """ Get param present in the config file """

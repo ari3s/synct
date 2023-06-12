@@ -50,7 +50,7 @@ class TestWdsClass:    # pylint: disable=too-few-public-methods
         google = Gsheet('', '', '')
 
         sheet_conf = {}
-        sheet_conf["TEST"] = Sheet(0, {}, {}, key)
+        sheet_conf["TEST"] = Sheet(0, ' ', False, {}, key)
         for column in jira_data:
             sheet_conf["TEST"].columns[column] = Column
 

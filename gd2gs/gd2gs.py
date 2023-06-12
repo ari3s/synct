@@ -53,19 +53,31 @@ def get_cli_parameters():
     log.setup(args.verbosity)
     return args
 
-def get_sheets_and_data(source_access, config, selected_sheets):
-    """ Get valid sheets list and source data """
-    source_data = {}
+def get_sheets(config, selected_sheets):
+    """ Get valid sheets list """
+    sheets_list = []
     if not selected_sheets:
-        selected_sheets = config.sheets
+        sheets_list = config.sheets
     else:
         for item in selected_sheets:
             if not item in config.sheets:
                 log.error(UNKNOWN_SHEET + item)
+            else:
+                sheets_list.append(item)
+    return sheets_list
+
+def get_sheets_and_data(source_access, config, selected_sheets, google_spreadsheet):
+    """ Get valid sheets list and source data """
+    source_data = {}
     sheets_list = []
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
-            source_data[sheet_name] = SourceData(source_access, query, config.sheet[sheet_name])
+            if config.sheet[sheet_name].default_columns:
+                source_data[sheet_name] = SourceData(source_access, query, \
+                    config.sheet[sheet_name], google_spreadsheet.data[sheet_name])
+            else:
+                source_data[sheet_name] = SourceData(source_access, query, \
+                    config.sheet[sheet_name])
             sheets_list.append(sheet_name)
     return sheets_list, source_data
 
@@ -100,7 +112,10 @@ def transform_data(source, google, sheet_conf, args):
                 key_index = source[sheet_name].key_dict[key_value]
                 source[sheet_name].used_key[key_value] = True
             else:
-                message = key + ': ' + key_value + NOT_AVAILABLE + sheet_name
+                if key_value:
+                    message = key + ': ' + key_value + NOT_AVAILABLE + sheet_name
+                else:
+                    message = key + ': <empty key>' + NOT_AVAILABLE + sheet_name
                 if args.remove:
                     log.info(message)
                 else:
@@ -150,9 +165,11 @@ def main():
     else:
         log.error(UNKNOWN_SOURCE)
     log.check_error()    # if a source error occured, terminate the script
-    sheets_list, data = get_sheets_and_data(source_access, config, args.sheet)
-    google_spreadsheet = Gsheet(config.spreadsheet_id, sheets_list, config.sheet)
+    valid_sheets = get_sheets(config, args.sheet)
+    google_spreadsheet = Gsheet(config.spreadsheet_id, valid_sheets, config.sheet)
+    used_sheets_list, data = get_sheets_and_data(source_access, config, \
+            valid_sheets, google_spreadsheet)
     transform_data(data, google_spreadsheet, config.sheet, args)
     if not args.test:
-        update_google_data(google_spreadsheet, sheets_list, config.sheet, args.remove)
+        update_google_data(google_spreadsheet, used_sheets_list, config.sheet, args.remove)
     log.debug(SCRIPT_FINISHED)

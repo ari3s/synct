@@ -14,24 +14,31 @@ class SourceData:   # pylint: disable=too-few-public-methods
     key_dict = {}
     used_key = {}
 
-    def __init__(self, source, query, sheet_config):
+    def __init__(self, source, query, sheet_config, g_sheet=None):
         """ Read source data """
         self.key_dict = {}
         self.used_key = {}
         source_data = source.get_data(query)
         log.check_error()
         converted_data = []
-        columns_list = list(sheet_config.columns.keys())
+        columns_list = create_columns_list(sheet_config, g_sheet)
         index = 0
-        for source_item in source_data:   #pylint: disable=unused-variable
+        for source_item in source_data:
             raw = {}
-            for value in columns_list:
-                raw[value] = ''
-            for column in sheet_config.columns:
+            key_value = get_value(source_item, sheet_config, sheet_config.key)
+            if key_value is None:
+                continue
+            if not isinstance(key_value, str):
                 try:
-                    value = eval('source_item.' + sheet_config.columns[column].data)
+                    key_value = str(key_value)
+                    if key_value == '':
+                        continue
                 except TypeError:
                     continue
+            for column in columns_list:
+                raw[column] = cell_init_value(g_sheet, column, sheet_config, key_value)
+                config_column = column in sheet_config.columns
+                value = get_value(source_item, sheet_config, column)
                 if value is None:
                     continue
                 if not isinstance(value, str):
@@ -39,9 +46,11 @@ class SourceData:   # pylint: disable=too-few-public-methods
                         iter(value)
                     except TypeError:
                         pass
-                raw[column] = evaluate(value, sheet_config.columns[column], source_item, \
-                        column == sheet_config.key)
-            key_value = raw[sheet_config.key]
+                if config_column:
+                    raw[column] = evaluate(value, sheet_config.columns[column], source_item, \
+                            column == sheet_config.key)
+                else:
+                    raw[column] = str(value)
             self.key_dict[key_value] = index
             index = index + 1
             self.used_key[key_value] = False
@@ -49,38 +58,79 @@ class SourceData:   # pylint: disable=too-few-public-methods
         self.data = pd.DataFrame(converted_data[0:], index=range(0, len(converted_data)), \
                                  columns=columns_list)
 
-    def __str__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
-
     def check_missing_keys(self, sheet, key, sheet_config, enable_add):
         """ Check missing keys in source data """
         missing_keys = []
         for key_value, used in self.used_key.items():
             if not used:
-                key_index = self.key_dict[key_value]
-                skip = False
-                for column in self.data.columns:
-                    option = sheet_config.columns[column].optional
-                    if option:
-                        if re.match(option, self.data.loc[key_index, (column)]):
-                            skip = True
-                            break
-                if skip:
+                if self.found_key(sheet_config, key_value):
                     continue
-                missing_keys.append(key_value)
-                message = key + ': ' + key_value + ': ' + MISSING_IN_THE_SPREADSHEET + ' ' + sheet
+                missing_keys.append(str(key_value))
+                message = key + ': ' + str(key_value) + ': ' + \
+                        MISSING_IN_THE_SPREADSHEET + ' ' + sheet
                 if enable_add:
                     log.info(message)
                 else:
                     log.warning(message)
         return missing_keys
 
+    def found_key(self, sheet_config, key_value):
+        """ Return the key is (not) found """
+        key_index = self.key_dict[key_value]
+        found = False
+        for column in self.data.columns:
+            try:
+                option = sheet_config.columns[column].optional
+                if option:
+                    if re.match(option, self.data.loc[key_index, (column)]):
+                        found = True
+                        break
+            except KeyError:        # not configured default column
+                continue
+        return found
+
+def cell_init_value(g_sheet, column, sheet_config, key_value):
+    """ Set an initial value of the cell """
+    value = ''
+    if g_sheet is not None and column in g_sheet.columns:
+        g_row = None
+        # Find a row with the key
+        for row in range(g_sheet.index.start, g_sheet.index.stop, g_sheet.index.step):
+            if g_sheet.loc[row, (sheet_config.key)] == key_value:
+                g_row = row
+                break
+        if g_row:            # original value in the default column
+            value = g_sheet.loc[g_row, (column)]
+    return value
+
+def create_columns_list(sheet_config, g_sheet):
+    """ Create a columns list """
+    columns_list = list(sheet_config.columns.keys())
+    if g_sheet is not None:
+        for column in g_sheet.columns:
+            if column not in columns_list:
+                columns_list.append(column)
+    return columns_list
+
+def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argument
+    """ Get value form source """
+    try:
+        value = eval('source_item.' + sheet_config.columns[column].data)    #pylint: disable=eval-used
+    except TypeError:
+        return None
+    except KeyError:
+        try:
+            value = eval('source_item.' + column)    #pylint: disable=eval-used
+        except (AttributeError, SyntaxError):
+            return None
+    return value
+
 def trans_value(config, conf_item_keys_list, source_item):  #pylint: disable=unused-argument
     """ Get and transform value from Jira to fit with other formats """
     value = []
     for key in conf_item_keys_list:
         try:
-            d_value = eval('source_item.' + config.data + '.' + key)
+            d_value = eval('source_item.' + config.data + '.' + key)    #pylint: disable=eval-used
         except TypeError:
             continue
         if isinstance(d_value, list):
