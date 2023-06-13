@@ -95,7 +95,7 @@ def cell_init_value(g_sheet, column, sheet_config, key_value):
     if g_sheet is not None and column in g_sheet.columns:
         g_row = None
         # Find a row with the key
-        for row in range(g_sheet.index.start, g_sheet.index.stop, g_sheet.index.step):
+        for row in g_sheet.index:
             if g_sheet.loc[row, (sheet_config.key)] == key_value:
                 g_row = row
                 break
@@ -116,7 +116,7 @@ def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argum
     """ Get value form source """
     try:
         value = eval('source_item.' + sheet_config.columns[column].data)    #pylint: disable=eval-used
-    except TypeError:
+    except (AttributeError, TypeError):
         return None
     except KeyError:
         try:

@@ -122,18 +122,13 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         """ Read the active sheets """
         remove_sheets = []
         for sheet in self.active_sheets:
-            data = self.get_sheet(sheet)
-            try:                          # check that the table with header is not empty
-                tmp = data.index.start    # pylint: disable=unused-variable
-            except AttributeError:        # empty table with header
-                data = None
-            if data is not None:
-                self.data[sheet] = data
-                self.rows[sheet] = self.data[sheet].index.stop - self.data[sheet].index.start + 1
+            self.data[sheet] = self.get_sheet(sheet)
+            if self.data[sheet] is None:    # empty table without header
+                remove_sheets.append(sheet) # sign for removing from active sheets
+            else:
                 self.remove_rows[sheet] = []
-            else:            # sheet data are not available
-                remove_sheets.append(sheet)
-        for sheet in remove_sheets:
+                self.rows[sheet] = len(self.data[sheet].index)
+        for sheet in remove_sheets:         # remove signed empty sheets from the next operations
             self.active_sheets.remove(sheet)
 
     def insert_rows(self, sheet, start_row, inserted_rows):
@@ -149,7 +144,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                             "startIndex": start_row,
                             "endIndex": start_row+inserted_rows
                         },
-                        "inheritFromBefore": True
+                        "inheritFromBefore": start_row > self.sheets_config[sheet].header_offset + 2
                     }
                 }
             ]
@@ -187,10 +182,10 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """
         for sheet in self.active_sheets:
-            if self.data[sheet].index.stop-self.data[sheet].index.start+1 > self.rows[sheet]:
+            if len(self.data[sheet].index) > self.rows[sheet]:
                 self.insert_rows(sheet, \
-                        self.rows[sheet]+self.sheets_config[sheet].header_offset, \
-                        self.data[sheet].index.stop-self.rows[sheet]+1)
+                        self.sheets_config[sheet].header_offset+self.rows[sheet]+2, \
+                        len(self.data[sheet])-self.rows[sheet])
             log.debug(UPDATE_GOOGLE_SHEET + sheet)
             body = {
                 'valueInputOption': 'USER_ENTERED',
@@ -217,9 +212,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         header_offset = self.sheets_config[sheet].header_offset
         col = self.data[sheet].columns.get_loc(column)
         rows = []
-        for row in range(self.data[sheet].index.start,
-                         self.data[sheet].index.stop,
-                         self.data[sheet].index.step):
+        for row in self.data[sheet].index:
             rows.append({'values': {'userEnteredFormat': {'textFormat': {'link': {'uri': \
                         link + str(self.data[sheet][column][row])}}}}})
         body = {
@@ -230,8 +223,8 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                         'fields': 'userEnteredFormat.textFormat.link.uri',
                         'range': {
                             "sheetId": self.sheet_id[sheet],
-                            "startRowIndex": self.data[sheet].index.start+header_offset+1,
-                            "endRowIndex": self.data[sheet].index.stop+header_offset+1,
+                            "startRowIndex": header_offset+1,
+                            "endRowIndex": len(self.data[sheet].index)+header_offset+1,
                             "startColumnIndex": col,
                             "endColumnIndex": col+1
                         }

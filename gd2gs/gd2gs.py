@@ -95,18 +95,11 @@ def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row):
 
 def transform_data(source, google, sheet_conf, args):
     """ Copy transformed data from source to the target Google spreadsheet """
-    key_google_dict = {}
     missing_all_google_key_values = []
     for sheet_name in google.active_sheets:
         key = sheet_conf[sheet_name].key
-        # Identify keys in the sheet
-        key_google_dict[sheet_name] = {}
-        for row in range(google.data[sheet_name].index.start, google.data[sheet_name].index.stop,
-                google.data[sheet_name].index.step):
-            key_google_dict[sheet_name][google.data[sheet_name][key][row]] = row
         # Update Google sheet data
-        for row in range(google.data[sheet_name].index.start, google.data[sheet_name].index.stop,
-                google.data[sheet_name].index.step):
+        for row in google.data[sheet_name].index:
             key_value = str(google.data[sheet_name][key][row])
             if key_value in source[sheet_name].key_dict:
                 key_index = source[sheet_name].key_dict[key_value]
