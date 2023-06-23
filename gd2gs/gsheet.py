@@ -2,6 +2,8 @@
 import os
 import pickle
 
+from time import sleep
+
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -15,6 +17,11 @@ CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
 TOKEN_PICKLE = 'token.pickle'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+# Write requests limit handling:
+INITIAL_DELAY = 1
+DELAY_MULTIPLIER = 2
+MAX_DELAY_COUNT = 8
 
 # Debug messages:
 ACCESS_GOOGLE_SPREADSHEET = 'access Google spreadsheet'
@@ -149,12 +156,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 }
             ]
         }
-        try:
-            response = self.spreadsheet_access.batchUpdate(
-                    spreadsheetId=self.spreadsheet_id, body=body).execute()
-            log.debug(response)
-        except HttpError as error:
-            log.error(error)
+        self.request_operation(self.spreadsheet_access.batchUpdate, body)
 
     def delete_row(self, sheet, row):
         """ Delete one row in the spreadsheet """
@@ -172,12 +174,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 }
             ]
         }
-        try:
-            response = self.spreadsheet_access.batchUpdate(
-                    spreadsheetId=self.spreadsheet_id, body=body).execute()
-            log.debug(response)
-        except HttpError as error:
-            log.error(error)
+        self.request_operation(self.spreadsheet_access.batchUpdate, body)
 
     def update_spreadsheet(self):
         """ Update the Google spreadsheet data without header """
@@ -197,13 +194,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                         }
                     ]
                 }
-            try:
-                response = self.spreadsheet_access.values().batchUpdate(
-                        spreadsheetId=self.spreadsheet_id,
-                        body=body).execute()
-                log.debug(response)
-            except HttpError as error:
-                log.error(error)
+            if not self.request_operation(self.spreadsheet_access.values().batchUpdate, body):
                 return
 
     def update_column_with_links(self, sheet, column, link):
@@ -232,10 +223,28 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 }
             ]
         }
-        try:
-            response = self.spreadsheet_access.batchUpdate(
-                    spreadsheetId=self.spreadsheet_id,
-                    body=body).execute()
-            log.debug(response)
-        except HttpError as error:
-            log.error(error)
+        self.request_operation(self.spreadsheet_access.batchUpdate, body)
+
+    def request_operation(self, operation, body):
+        """
+        Handle batchUpdate request with preventing to exceed the limit of
+        'Write requests per minute per user'. If the request is not successful,
+        it is repeated with a delay more times. The delay value is increased
+        exponentially in the next round.
+        """
+        delay = INITIAL_DELAY                       # the initial delay after the first error
+        count = 0                                   # counter of the operation requests
+        while count < MAX_DELAY_COUNT:
+            count = count + 1
+            try:
+                response = operation(
+                        spreadsheetId=self.spreadsheet_id, body=body).execute()
+                log.debug(response)
+                return True                         # successful operation
+            except HttpError as error:
+                if count >= MAX_DELAY_COUNT:
+                    log.error(error)
+                    return False                    # unsuccessful operation
+                sleep(delay)                        # delay in sec
+                delay = DELAY_MULTIPLIER * delay    # prolong the next delay
+        return False                                # unsuccessful, this way should never happen
