@@ -158,7 +158,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         }
         self.request_operation(self.spreadsheet_access.batchUpdate, body)
 
-    def delete_row(self, sheet, row):
+    def delete_rows(self, sheet, start_row, deleted_rows):
         """ Delete one row in the spreadsheet """
         body = {
             "requests": [
@@ -167,8 +167,8 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                         "range": {
                             "sheetId": self.sheet_id[sheet],
                             "dimension": "ROWS",
-                            "startIndex": row-1,
-                            "endIndex": row
+                            "startIndex": start_row,
+                            "endIndex": start_row+deleted_rows
                         }
                     }
                 }

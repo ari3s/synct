@@ -137,9 +137,21 @@ def update_google_data(google, sheets_list, sheet_conf, enable_remove):
                     sheet_conf[sheet_name].key == column:
                 google.update_column_with_links(sheet_name, column, \
                         sheet_conf[sheet_name].columns[column].link)
-        if enable_remove:
-            for row in sorted(google.remove_rows[sheet_name], reverse=True):
-                google.delete_row(sheet_name, row+sheet_conf[sheet_name].header_offset+2)
+        if enable_remove and google.remove_rows[sheet_name]:
+            removals = {}
+            start_row = None
+            previous_row = None
+            for current_row in sorted(google.remove_rows[sheet_name]):
+                if start_row is None or current_row != previous_row + 1:
+                    start_row = current_row
+                    previous_row = current_row
+                    removals[start_row] = 1
+                else:
+                    previous_row = current_row
+                    removals[start_row] = removals[start_row] + 1
+            for row in sorted(removals, reverse=True):
+                google.delete_rows(sheet_name, row+sheet_conf[sheet_name].header_offset+1, \
+                        removals[row])
 
 def main():
     """
