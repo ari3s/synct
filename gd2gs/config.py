@@ -26,6 +26,8 @@ HEADER_OFFSET = 'HEADER_OFFSET'
 DEFAULT_HEADER_OFFSET = 0
 DEFAULT_COLUMNS = 'DEFAULT_COLUMNS'
 INIT_DEFAULT_COLUMNS = False
+INHERIT_FORMULAS = 'INHERIT_FORMULAS'
+INIT_INHERIT_FORMULAS = False
 SHEET_COLUMNS = 'SHEET_COLUMNS'
 SOURCE = 'SOURCE'
 FROM = 'FROM'
@@ -69,6 +71,7 @@ class Sheet:
     header_offset: int = DEFAULT_HEADER_OFFSET
     delimiter: str = DEFAULT_DELIMITER
     default_columns: bool = INIT_DEFAULT_COLUMNS
+    inherit_formulas: bool = INIT_INHERIT_FORMULAS
     columns: dict = None
     key: str = None
 
@@ -152,6 +155,7 @@ def get_sheet_config(config_data, spreadsheet):
         header_offset = spreadsheet.header_offset
         delimiter = spreadsheet.delimiter
         default_columns = spreadsheet.default_columns
+        inherit_formulas = spreadsheet.inherit_formulas
         key = spreadsheet.key
         for column in spreadsheet.columns:
             columns[column] = spreadsheet.columns[column]
@@ -159,12 +163,15 @@ def get_sheet_config(config_data, spreadsheet):
         header_offset = DEFAULT_HEADER_OFFSET
         delimiter = DEFAULT_DELIMITER
         default_columns = INIT_DEFAULT_COLUMNS
+        inherit_formulas = INIT_INHERIT_FORMULAS
     if HEADER_OFFSET in config_data:
         header_offset = int(config_data[HEADER_OFFSET])
     if DELIMITER in config_data:
         delimiter = config_data[DELIMITER]
     if DEFAULT_COLUMNS in config_data:
         default_columns = config_data[DEFAULT_COLUMNS]
+    if INHERIT_FORMULAS in config_data:
+        inherit_formulas = config_data[INHERIT_FORMULAS]
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()
@@ -173,7 +180,7 @@ def get_sheet_config(config_data, spreadsheet):
         delimiter = spreadsheet.delimiter
         columns = spreadsheet.columns
         key = spreadsheet.key
-    return Sheet(header_offset, delimiter, default_columns, columns, key)
+    return Sheet(header_offset, delimiter, default_columns, inherit_formulas, columns, key)
 
 def get_column_config(key, column, col, c_data, delimiter):
     """ Get column configuration """

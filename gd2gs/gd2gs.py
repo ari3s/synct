@@ -81,17 +81,40 @@ def get_sheets_and_data(source_access, config, selected_sheets, google_spreadshe
             sheets_list.append(sheet_name)
     return sheets_list, source_data
 
-def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row):
+def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
     """ Update the Google row with source data """
     for column in g_sheet.columns:
         if column in s_sheet.data.columns:
             g_sheet.loc[g_row, (column)] = s_sheet.data.loc[s_key_index, (column)]
         else:
+            if formula and column in formula:
+                value = formula[column]
+            else:
+                value = ""
             try:
                 if pd.isnull(g_sheet.loc[g_row, (column)]):
-                    g_sheet.loc[g_row, (column)] = ""    # fix undefined value
-            except KeyError:                             # fix undefined variable
-                g_sheet.loc[g_row, (column)] = ""
+                    g_sheet.loc[g_row, (column)] = value   # fix undefined value
+            except KeyError:                               # fix undefined variable
+                g_sheet.loc[g_row, (column)] = value
+
+def get_formula(source, google, sheet_name, sheet_conf):
+    """
+    Get formula in Google columns, that are not included in the source columns,
+    from the last row.
+    """
+    formula = {}
+    if sheet_conf[sheet_name].inherit_formulas:
+        for column in google.data[sheet_name].columns:
+            if column not in list(sheet_conf[sheet_name].columns.keys()) or \
+                    sheet_conf[sheet_name].default_columns and \
+                    column not in source[sheet_name].data.columns:
+                cell = google.data[sheet_name].at[google.rows[sheet_name]-1, column]
+                try:
+                    if cell[0] == "=":
+                        formula[column] = cell
+                except IndexError:
+                    continue
+    return formula
 
 def transform_data(source, google, sheet_conf, args):
     """ Copy transformed data from source to the target Google spreadsheet """
@@ -120,9 +143,10 @@ def transform_data(source, google, sheet_conf, args):
         missing_google_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
                 sheet_conf[sheet_name], args.add)
         if args.add and not args.test:
+            formula = get_formula(source, google, sheet_name, sheet_conf)
             for key_value in missing_google_keys:
                 update_google_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
-                        google.data[sheet_name], len(google.data[sheet_name]))
+                        google.data[sheet_name], len(google.data[sheet_name]), formula)
         missing_all_google_key_values = missing_all_google_key_values + missing_google_keys
 
     if missing_all_google_key_values:
