@@ -36,6 +36,8 @@ SHEETS:
         component: rpm
         status: __open__
         limit: 100
+    INHERIT_FORMULAS: True
+    DEFAULT_COLUMNS: True
   - NAME: libdnf
     QUERY:
         query_format: advanced

@@ -9,7 +9,7 @@ spreadsheet as defined in the configuration file.
 ### Fedora
 The script can be installed on Fedora systems using `dnf` from the package stored in this project:
 ```
-sudo dnf install gd2gs-0.7.1-1.fc38.noarch.rpm
+sudo dnf install gd2gs-0.8.0-1.fc38.noarch.rpm
 
 ```
 
@@ -33,7 +33,7 @@ python3-pyyaml
 ### Linux and MacOS
 The script can be installed on Linux or MacOS systems using `pip`:
 ```
-python -m pip install gd2gs-0.7.1.tar.gz
+python -m pip install gd2gs-0.8.0.tar.gz
 ```
 
 The following dependencies will be installed from PyPI by the above command:
