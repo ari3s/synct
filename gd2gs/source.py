@@ -99,7 +99,7 @@ def cell_init_value(g_sheet, column, sheet_config, key_value):
             if g_sheet.loc[row, (sheet_config.key)] == key_value:
                 g_row = row
                 break
-        if g_row:            # original value in the default column
+        if g_row is not None:         # original value in the default column
             value = g_sheet.loc[g_row, (column)]
     return value
 
