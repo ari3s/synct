@@ -7,6 +7,7 @@ spreadsheet as it is defined in the config file.
 import argparse
 import pyperclip
 
+import numpy
 import pandas as pd
 import gd2gs.logger as log
 
@@ -81,11 +82,18 @@ def get_sheets_and_data(source_access, config, selected_sheets, google_spreadshe
             sheets_list.append(sheet_name)
     return sheets_list, source_data
 
+def normalize_type(value):
+    """ Avoid numpy type int64 issue that is not allowed in JSON """
+    if numpy.issubdtype(type(value), int):
+        value = int(value)
+    return value
+
 def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
     """ Update the Google row with source data """
     for column in g_sheet.columns:
         if column in s_sheet.data.columns:
-            g_sheet.loc[g_row, (column)] = s_sheet.data.loc[s_key_index, (column)]
+            g_sheet.loc[g_row, (column)] = normalize_type(
+                    s_sheet.data.loc[s_key_index, (column)])
         else:
             if formula and column in formula:
                 value = formula[column]
@@ -93,9 +101,9 @@ def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
                 value = ""
             try:
                 if pd.isnull(g_sheet.loc[g_row, (column)]):
-                    g_sheet.loc[g_row, (column)] = value   # fix undefined value
-            except KeyError:                               # fix undefined variable
-                g_sheet.loc[g_row, (column)] = value
+                    g_sheet.loc[g_row, (column)] = normalize_type(value)   # fix undefined value
+            except KeyError:                                               # fix undefined variable
+                g_sheet.loc[g_row, (column)] = normalize_type(value)
 
 def get_formula(source, google, sheet_name, sheet_conf):
     """
