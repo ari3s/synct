@@ -92,8 +92,10 @@ def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
     """ Update the Google row with source data """
     for column in g_sheet.columns:
         if column in s_sheet.data.columns:
-            g_sheet.loc[g_row, (column)] = normalize_type(
-                    s_sheet.data.loc[s_key_index, (column)])
+            value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
+            if value == '' and formula and column in formula:
+                value = formula[column]
+            g_sheet.loc[g_row, (column)] = value
         else:
             if formula and column in formula:
                 value = formula[column]
