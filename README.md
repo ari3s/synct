@@ -49,7 +49,7 @@ python-bugzilla
 
 ## Usage
 ```
-gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-v] [-q] [-t] [-a] [-r]
+gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
 ```
 
 The script updates data rows in the Google spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
@@ -62,9 +62,15 @@ The `-a` parameter enables the addition of missing rows to the spreadsheet. The 
 
 The `-r` parameter enables the removal of rows in the spreadsheet. It is related to rows whose values are not retrieved from a source. For example, the script is configured to collect and update open bugs from Bugzilla. The `-r` parameter allows for the deletion of rows that contain bugs that have not been retrieved, meaning those that have been closed. Without the parameter, such rows are not updated, and a warning is reported by the script.
 
+The `-f FILE` parameter defines the source file name that can be either Excel or OpenDocument Spreadsheet. If the parameter occures, then a source file in the configuration file is ignored.
+
+The `-t TABLE` parameter defines the table/sheet in the source file that will be used. If the parameter occures, then a table name in the configuration file is ignored.
+
+The `-o OFFSET` parameter defines the header offset in the source file. If the parameter occures, then an offset in the configuration file is ignored. Default value is 0.
+
 By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include info level, and `-vv` includes debug level. The `-q` parameter reduces the logging to errors only.
 
-The `-t` parameter disables updating the Google spreadsheet.
+The `-n` parameter disables updating the Google spreadsheet.
 
 The `-h` parameter displays a short help message.
 
@@ -85,6 +91,8 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `DEFAULT_COLUMNS`  | It can enable usage of default column names, it means that they can be ommitted in the cofiguration file, and equal names of source data items and Google spreadsheet columns are paired. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `DELIMITER`        | The delimiter is used to separate items in one cell. The default value is space. The delimiter can be defined globally as well as individually in sheets and columns. If `DELIMITER` is defined together with the `GET` reserved word, it defines a separator between items obtained from the `GET` list. |
 | `DOMAIN`           | Bugzilla domain. |
+| `FILE`             | The script retrieves data from local file in spreadsheet format (.ods, .xls, .xlsx). It should contain `TYPE`, optionally 'FILE_NAME', `OFFSET' and/or `TABLE`. |
+| `FILE_NAME`        | Name of the input file (optional). It is ignored if a file name is defined on the command line. |
 | `FROM`             | It is used together with the `GET` (and optionally with the `CONDITION`) reserved word to address the higher level of structured identifiers. |
 | `GET`              | It is used together with the `FROM` (and optionally with the `CONDITION`) reserved word to address the list of lower level structured identifiers with explicit values, which can be regular expressions. |
 | `HEADER_OFFSET`    | The first row of the Google spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0, which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. It can be defined either globally or specifically for each sheet. |
@@ -94,6 +102,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `LINK`             | It can be used in columns. It contains a URL that is used as a prefix for values. If the column is a key column, link format is used. |
 | `MAX_RESULTS`      | It defines the maximum number of obtained items from Jira for each query. It can only be a part of the `JIRA` section. |
 | `NAME`             | It defines the name of each sheet. |
+| `OFFSET`           | Header offset in the spreadsheet input file (optional). It is ignored if an offset is defined on the command line. |
 | `OPTIONAL`         | When the key with this specific column value is missing, it is not reported as a warning. The value can be a regular expression. |
 | `QUERY`            | Query definition for each sheet. It is specific to the input. |
 | `SERVER`           | URL of the Jira server. It can only be a part of the `JIRA` section. |
@@ -101,7 +110,9 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `SHEETS`           | List of sheets that should be addressed in the target Google spreadsheet. |
 | `SOURCE`           | It defines the column name's relation to a data identifier obtained from the input. It is used when multiple reserved words belong to a specific column, such as `CONDITION`, `FROM`, `GET`, `KEY`, `LINK`, or `OPTIONAL`. |
 | `SPREADSHEET_ID`   | ID of the target Google spreadsheet. |
+| `TABLE`            | Table/sheet name of the spreadsheet source (optional). Only one table is allowed. It is ignored if a table name is defined on the command line. |
 | `TOKEN`            | File name that contains the token to access Jira. |
+| `TYPE`             | Type of the local input file. The value must be `SPREADSHEET`. |
 | `URL`              | Bugzilla URL. |
 
 ### Bugzilla example

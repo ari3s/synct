@@ -16,6 +16,7 @@ from gd2gs.bzilla import Bzilla
 from gd2gs.jira import Jira
 from gd2gs.gsheet import Gsheet
 from gd2gs.source import SourceData
+from gd2gs.xsheet import Xsheet
 
 CONFIG_FILE = 'gd2gs.yaml'
 
@@ -27,7 +28,7 @@ SCRIPT_STARTED = 'script started'
 NOT_AVAILABLE = ': data update from input is not available in Google sheet '
 
 # Info messages:
-TEST_MODE = 'test mode (Google spreadsheet update is disabled)'
+NO_UPDATE_MODE = 'no update mode (Google spreadsheet update is disabled)'
 
 # Error messages:
 UNKNOWN_SHEET = 'uknown sheet: '
@@ -39,17 +40,23 @@ def get_cli_parameters():
     parser.add_argument('-c', '--config', type=str, default=CONFIG_FILE,
             help='config file (default: '+CONFIG_FILE+')')
     parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
-            help='use listed sheets')
-    parser.add_argument('-v', '--verbose', action='count', dest='verbosity',
-            default=0, help='verbose output (repeat for increased verbosity)')
-    parser.add_argument('-q', '--quiet', action='store_const', const=-1,
-            default=0, dest='verbosity', help='quiet output (show errors only)')
-    parser.add_argument('-t', '--test', action="store_true",
-            help='disable Google spreadsheet update')
+            help='use listed Google sheets')
     parser.add_argument('-a', '--add', action="store_true",
             help='enable to add missing items into the Google spreadsheet')
     parser.add_argument('-r', '--remove', action="store_true",
             help='enable removing items in the Google spreadsheet')
+    parser.add_argument('-f', '--file', type=str, default=None,
+            help='file name of data source')
+    parser.add_argument('-t', '--table', type=str, default=None,
+            help='table name of the spreadsheet source')
+    parser.add_argument('-o', '--offset', type=int, default=None,
+            help='header offset in the spreadsheet source')
+    parser.add_argument('-v', '--verbose', action='count', dest='verbosity',
+            default=0, help='verbose output (repeat for increased verbosity)')
+    parser.add_argument('-q', '--quiet', action='store_const', const=-1,
+            default=0, dest='verbosity', help='quiet output (show errors only)')
+    parser.add_argument('-n', '--noupdate', action="store_true",
+            help='disable Google spreadsheet update')
     args = parser.parse_args()
     log.setup(args.verbosity)
     return args
@@ -152,7 +159,7 @@ def transform_data(source, google, sheet_conf, args):
         # Identify missing keys in the Google sheet which data are available from the source
         missing_google_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
                 sheet_conf[sheet_name], args.add)
-        if args.add and not args.test:
+        if args.add and not args.noupdate:
             formula = get_formula(source, google, sheet_name, sheet_conf)
             for key_value in missing_google_keys:
                 update_google_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
@@ -194,13 +201,15 @@ def main():
     """
     log.debug(SCRIPT_STARTED)
     args = get_cli_parameters()
-    if args.test:
-        log.info(TEST_MODE)
+    if args.noupdate:
+        log.info(NO_UPDATE_MODE)
     config = Config(args.config)
     if config.source == 'BUGZILLA':
         source_access = Bzilla(config.bugzilla_domain, config.bugzilla_url, config.bugzilla_api_key)
     elif config.source == 'JIRA':
         source_access = Jira(config.jira_server, config.jira_token, config.jira_max_results)
+    elif config.source == 'FILE':
+        source_access = Xsheet(config, args.file, args.table, args.offset)
     else:
         log.error(UNKNOWN_SOURCE)
     log.check_error()    # if a source error occured, terminate the script
@@ -209,6 +218,6 @@ def main():
     used_sheets_list, data = get_sheets_and_data(source_access, config, \
             valid_sheets, google_spreadsheet)
     transform_data(data, google_spreadsheet, config.sheet, args)
-    if not args.test:
+    if not args.noupdate:
         update_google_data(google_spreadsheet, used_sheets_list, config.sheet, args.remove)
     log.debug(SCRIPT_FINISHED)

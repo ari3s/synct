@@ -14,6 +14,13 @@ JIRA = 'JIRA'
 SERVER = 'SERVER'
 TOKEN = 'TOKEN'
 
+FILE = 'FILE'
+TYPE = 'TYPE'
+SPREADSHEET = 'SPREADSHEET'
+FILE_NAME = 'FILE_NAME'
+OFFSET = 'OFFSET'
+TABLE = 'TABLE'
+
 MAX_RESULTS = 'MAX_RESULTS'
 DEFAULT_MAX_RESULTS = 100
 QUERY = 'QUERY'
@@ -42,7 +49,7 @@ DEFAULT_DELIMITER = ' '
 # Debug messages:
 READ_CONFIG_FILE = 'read config file'
 SHEET = 'sheet'
-SPREADSHEET = 'spreadsheet: '
+SPREADSHEET_ = 'spreadsheet: '
 
 # Error messages - config file:
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
@@ -56,6 +63,10 @@ CONFIG_FILE_MISSING_BUGZILLA_URL = 'Bugzilla URL is not set in the config file'
 # Error messages - Jira:
 CONFIG_FILE_MISSING_JIRA_TOKEN = 'Jira access token is not set in the config file'
 CONFIG_FILE_MISSING_JIRA_URL = 'Jira server url is not set in the config file'
+
+# Error messages - file:
+CONFIG_FILE_MISSING_FILE_TYPE = 'missing type of the input file'
+CONFIG_FILE_WRONG_FILE_TYPE = 'wrong type of the input file'
 
 # Error messages - Google spreadsheet:
 CONFIG_FILE_MISSING_KEY = 'missing key in the config file'
@@ -101,6 +112,8 @@ class Config:   # pylint: disable=too-many-instance-attributes
             self.config_bugzilla(config_data)
         elif self.source == JIRA:
             self.config_jira(config_data)
+        elif self.source == FILE:
+            self.config_xsheet(config_data)
         else:
             log.error(self.source + ' ' + CONFIG_FILE_UNKNOWN_INPUT)
         self.config_gsheet(config_data)
@@ -122,6 +135,14 @@ class Config:   # pylint: disable=too-many-instance-attributes
         self.jira_max_results = int(get_config_with_default(config_data[JIRA], \
                 MAX_RESULTS, DEFAULT_MAX_RESULTS))
 
+    def config_xsheet(self, config_data):
+        """ Configure input file params """
+        if get_config(config_data[FILE], TYPE, CONFIG_FILE_MISSING_FILE_TYPE) != SPREADSHEET:
+            log.fatal_error(CONFIG_FILE_WRONG_FILE_TYPE)
+        self.name = get_config_with_default(config_data[FILE], FILE_NAME, None)
+        self.table = get_config_with_default(config_data[FILE], TABLE, None)
+        self.offset = get_config_with_default(config_data[FILE], OFFSET, DEFAULT_HEADER_OFFSET)
+
     def config_gsheet(self, config_data):
         """ Configure Google spreadsheet params """
         self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
@@ -130,7 +151,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
             log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
 
         spreadsheet = get_sheet_config(config_data, None)
-        log.debug(SPREADSHEET + str(spreadsheet))
+        log.debug(SPREADSHEET_ + str(spreadsheet))
         if SHEETS in config_data:
             self.sheets = []
             self.sheet = {}
@@ -219,7 +240,7 @@ def get_source_config(col, c_data):
         col.data = c_data[SOURCE]
 
 def get_config(config_data, param, error_message):
-    """ Get param present in the config file """
+    """ Get param presented in the config file """
     if param not in config_data:
         log.error(error_message)
     try:
@@ -241,12 +262,14 @@ def get_config_with_default(config_data, param, default_value):
     return value
 
 def get_input(config_data, error_message):
-    """ Get input present in the config file """
+    """ Get input presented in the config file """
     param = None
     if BUGZILLA in config_data:
         param = BUGZILLA
     elif JIRA in config_data:
         param = JIRA
+    elif FILE in config_data:
+        param = FILE
     else:
         log.error(error_message)
     try:
