@@ -125,7 +125,10 @@ def get_formula(source, google, sheet_name, sheet_conf):
             if column not in list(sheet_conf[sheet_name].columns.keys()) or \
                     sheet_conf[sheet_name].default_columns and \
                     column not in source[sheet_name].data.columns:
-                cell = google.data[sheet_name].at[google.rows[sheet_name]-1, column]
+                try:
+                    cell = google.data[sheet_name].at[google.rows[sheet_name]-1, column]
+                except KeyError:
+                    continue
                 try:
                     if cell[0] == "=":
                         formula[column] = cell
