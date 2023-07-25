@@ -216,7 +216,10 @@ def get_column_config(key, column, col, c_data, delimiter):
             col.link = c_data[LINK]
         if OPTIONAL in c_data:
             col.optional = c_data[OPTIONAL]
-        get_source_config(col, c_data)
+        if SOURCE in c_data:
+            get_source_config(col, c_data)
+        else:
+            col.data = column
     else:
         col.data = c_data
     return key
