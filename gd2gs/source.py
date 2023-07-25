@@ -115,17 +115,20 @@ def create_columns_list(sheet_config, g_sheet):
 def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argument
     """ Get value from source """
     try:
-        value = source_item[column]
-    except (KeyError, TypeError):
+        value = source_item[sheet_config.columns[column].data]
+    except KeyError:
         try:
-            value = eval('source_item.' + sheet_config.columns[column].data)    #pylint: disable=eval-used
-        except KeyError:
+            value = source_item[column]
+        except (KeyError, TypeError):
             try:
-                value = eval('source_item.' + column)    #pylint: disable=eval-used
-            except (AttributeError, SyntaxError):
+                value = eval('source_item.' + sheet_config.columns[column].data)    #pylint: disable=eval-used
+            except KeyError:
+                try:
+                    value = eval('source_item.' + column)    #pylint: disable=eval-used
+                except (AttributeError, SyntaxError):
+                    return None
+            except (AttributeError, TypeError):
                 return None
-        except (AttributeError, TypeError):
-            return None
     return value
 
 def trans_value(config, conf_item_keys_list, source_item):  #pylint: disable=unused-argument
