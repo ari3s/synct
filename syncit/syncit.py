@@ -1,5 +1,5 @@
 """
-gd2gs
+syncit
 
 The script gets data from the particular source and copies the data in Google
 spreadsheet as it is defined in the config file.
@@ -9,16 +9,16 @@ import pyperclip
 
 import numpy
 import pandas as pd
-import gd2gs.logger as log
+import syncit.logger as log
 
-from gd2gs.config import Config
-from gd2gs.bzilla import Bzilla
-from gd2gs.jira import Jira
-from gd2gs.gsheet import Gsheet
-from gd2gs.source import SourceData
-from gd2gs.xsheet import Xsheet
+from syncit.config import Config
+from syncit.bzilla import Bzilla
+from syncit.jira import Jira
+from syncit.gsheet import Gsheet
+from syncit.source import SourceData
+from syncit.xsheet import Xsheet
 
-CONFIG_FILE = 'gd2gs.yaml'
+CONFIG_FILE = 'syncit.yaml'
 
 # Debug messages:
 SCRIPT_FINISHED = 'script finished'

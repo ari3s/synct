@@ -1,7 +1,7 @@
-# gd2gs
+# syncit
 
 ## Description
-`gd2gs` is a Python script that gets data from a source and converts it to a Google
+`syncit` is a Python script that gets data from a source and converts it to a Google
 spreadsheet as defined in the configuration file.
 
 ## Installation
@@ -9,14 +9,14 @@ spreadsheet as defined in the configuration file.
 ### Fedora
 The script can be installed on Fedora systems using `dnf` from the package stored in this project:
 ```
-sudo dnf install gd2gs-0.9.0-1.fc38.noarch.rpm
+sudo dnf install syncit-0.9.0-1.fc38.noarch.rpm
 
 ```
 
 The script can also be installed from Fedora COPR using these commands:
 ```
-sudo dnf copr enable aries/gd2gs
-sudo dnf install gd2gs
+sudo dnf copr enable aries/syncit
+sudo dnf install syncit
 ```
 
 The following packages are required to be installed:
@@ -33,7 +33,7 @@ python3-pyyaml
 ### Linux and MacOS
 The script can be installed on Linux or MacOS systems using `pip`:
 ```
-python -m pip install gd2gs-0.9.0.tar.gz
+python -m pip install syncit-0.9.0.tar.gz
 ```
 
 The following dependencies will be installed from PyPI by the above command:
@@ -49,12 +49,12 @@ python-bugzilla
 
 ## Usage
 ```
-gd2gs [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
+syncit [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
 ```
 
 The script updates data rows in the Google spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
 
-The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadsheet with sheet names and related queries, the column names with their related items, and additional parameters that define the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `gd2gs.yaml` file in the working directory.
+The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, the reference to the target Google spreadsheet with sheet names and related queries, the column names with their related items, and additional parameters that define the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `syncit.yaml` file in the working directory.
 
 The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
 

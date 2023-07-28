@@ -11,7 +11,7 @@ from google.auth.transport.requests import Request
 
 import pandas as pd
 
-import gd2gs.logger as log
+import syncit.logger as log
 
 CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'

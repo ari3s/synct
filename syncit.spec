@@ -1,18 +1,18 @@
-Name:		gd2gs
+Name:		syncit
 Version:	0.9.0
 Release:	%autorelease
 Summary:	Get data to Google sheets
 
 License:	GPL-3.0-or-later
-URL:		https://github.com/ari3s/gd2gs
-Source0:	https://raw.githubusercontent.com/ari3s/gd2gs/main/%{name}-%{version}.tar.gz
+URL:		https://github.com/ari3s/syncit
+Source0:	https://raw.githubusercontent.com/ari3s/syncit/main/%{name}-%{version}.tar.gz
 BuildArch:	noarch
 
 BuildRequires:	pyproject-rpm-macros
 BuildRequires:	python3-devel
 
 %description
-gd2gs reads data from the particular source and copies the data in Google
+syncit reads data from the particular source and copies the data in Google
 spreadsheet as it is defined in the config file. The config file
 also contains relations between the source items and the columns
 in Google spreadsheet.

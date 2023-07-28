@@ -5,7 +5,7 @@ import os
 
 from bugzilla import Bugzilla
 
-import gd2gs.logger as log
+import syncit.logger as log
 
 API_KEY = 'api_key'
 

@@ -10,18 +10,18 @@ README = (HERE / "README.md").read_text()
 VERSION = (HERE / "VERSION").read_text()
 
 setup(
-    name = 'gd2gs',
+    name = 'syncit',
     version = VERSION,
     description = 'Transform data from source to Google sheet',
     long_description = README,
     long_description_content_type = 'text/markdown',
-    url = 'https://github.com/ari3s/gd2gs',
+    url = 'https://github.com/ari3s/syncit',
     author = 'Jan Beran',
     author_email = 'jberan@redhat.com',
     license = 'GPL-3.0-or-later',
     zip_safe = False,
     entry_points={
-        'console_scripts': ['gd2gs = gd2gs.gd2gs:main']
+        'console_scripts': ['syncit = syncit.syncit:main']
     },
     packages = find_packages(),
     install_requires = [

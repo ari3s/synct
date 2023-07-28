@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import yaml
 
-import gd2gs.logger as log
+import syncit.logger as log
 
 BUGZILLA = 'BUGZILLA'
 API_KEY = 'API_KEY'

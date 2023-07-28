@@ -3,7 +3,7 @@ import builtins
 import re
 
 import pandas as pd
-import gd2gs.logger as log
+import syncit.logger as log
 
 # Warning messages:
 MISSING_IN_THE_SPREADSHEET = 'missing in Google sheet'

@@ -7,7 +7,7 @@ from json import loads
 
 import pandas as pd
 
-import gd2gs.logger as log
+import syncit.logger as log
 
 # Debug messages:
 IDENTIFY_FILE_TYPE = 'identify input file type'

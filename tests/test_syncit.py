@@ -5,10 +5,10 @@ from flexmock import flexmock
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from gd2gs.config import Column, Sheet
-from gd2gs.source import SourceData
-from gd2gs.gsheet import Gsheet
-from gd2gs.gd2gs import transform_data
+from syncit.config import Column, Sheet
+from syncit.source import SourceData
+from syncit.gsheet import Gsheet
+from syncit.syncit import transform_data
 
 TESTS_DIR = Path(__file__).parent
 DATA_DIR = TESTS_DIR / "data"
