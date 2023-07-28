@@ -91,7 +91,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `DEFAULT_COLUMNS`  | It can enable usage of default column names, it means that they can be ommitted in the cofiguration file, and equal names of source data items and Google spreadsheet columns are paired. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `DELIMITER`        | The delimiter is used to separate items in one cell. The default value is space. The delimiter can be defined globally as well as individually in sheets and columns. If `DELIMITER` is defined together with the `GET` reserved word, it defines a separator between items obtained from the `GET` list. |
 | `DOMAIN`           | Bugzilla domain. |
-| `FILE`             | The script retrieves data from local file in spreadsheet format (.ods, .xls, .xlsx). It should contain `TYPE`, optionally 'FILE_NAME', `OFFSET' and/or `TABLE`. |
+| `FILE`             | The script retrieves data from local file in spreadsheet format (.ods, .xls, .xlsx, .csv). It should contain `TYPE`, optionally 'FILE_NAME', `OFFSET' and/or `TABLE`. |
 | `FILE_NAME`        | Name of the input file (optional). It is ignored if a file name is defined on the command line. |
 | `FROM`             | It is used together with the `GET` (and optionally with the `CONDITION`) reserved word to address the higher level of structured identifiers. |
 | `GET`              | It is used together with the `FROM` (and optionally with the `CONDITION`) reserved word to address the list of lower level structured identifiers with explicit values, which can be regular expressions. |

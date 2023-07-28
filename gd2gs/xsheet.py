@@ -18,8 +18,11 @@ SELECT_INPUT_FILE = 'select input data: '
 UNKNOWN_FILE_TYPE = 'unknown input file type'
 READING_INPUT_FILE_FAILED = 'reading input file failed'
 
+# Warning messages:
+IGNORED_TABLE = 'table selection is ignored, not supported in CSV files'
+
 # Spreadsheet engines per file name extension
-engines = {'.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'openpyxl'}
+engines = {'.csv': 'python', '.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'openpyxl'}
 
 class Xsheet:   # pylint: disable=too-few-public-methods
     """ Input spreadsheet file class """
@@ -44,7 +47,13 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             # suppress warnig: Workbook contains no default style, apply openpyxl's default
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter('always')
-                if table_name:
+                if pathlib.Path(file_name).suffix == '.csv':
+                    if table_name:
+                        log.warning(IGNORED_TABLE)
+                    self.data = pd.read_csv(file_name, engine=engine,
+                                            sep=None,   # python engine can detect the separator
+                                            skiprows=offset_value, keep_default_na=False)
+                elif table_name:
                     self.data = pd.read_excel(file_name, engine=engine, sheet_name=table_name,
                                               skiprows=offset_value, keep_default_na=False)
                 else:
