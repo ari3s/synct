@@ -132,7 +132,7 @@ def get_formula(source, google, sheet_name, sheet_conf):
                 try:
                     if cell[0] == "=":
                         formula[column] = cell
-                except IndexError:
+                except (IndexError, TypeError):
                     continue
     return formula
 
