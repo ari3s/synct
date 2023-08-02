@@ -116,7 +116,7 @@ def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argum
     """ Get value from source """
     try:
         value = source_item[sheet_config.columns[column].data]
-    except KeyError:
+    except (KeyError, TypeError):
         try:
             value = source_item[column]
         except (KeyError, TypeError):
