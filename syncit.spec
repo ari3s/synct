@@ -1,5 +1,5 @@
 Name:		syncit
-Version:	1.0.1
+Version:	1.0.2
 Release:	%autorelease
 Summary:	Get data to Google sheets
 
