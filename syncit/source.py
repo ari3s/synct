@@ -47,6 +47,8 @@ class SourceData:   # pylint: disable=too-few-public-methods
                 if config_column:
                     raw[column] = evaluate(value, sheet_config.columns[column], source_item, \
                             column == sheet_config.key)
+                elif isinstance(value, list):
+                    raw[column] = sheet_config.delimiter.join(map(str, value))
                 else:
                     raw[column] = str(value)
             self.key_dict[key_value] = index
