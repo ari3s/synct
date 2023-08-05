@@ -1,59 +1,133 @@
-""" Testing """
+""" 
+Testing the syncit script functionality that covers
+adding rows, default columns and inheriting formulas.
+"""
 from pathlib import Path
-from flexmock import flexmock
+
+import unittest
+from unittest.mock import patch
+from parameterized import parameterized
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
+import yaml
+
 from syncit.config import Column, Sheet
 from syncit.source import SourceData
-from syncit.gsheet import Gsheet
 from syncit.syncit import transform_data
 
 TESTS_DIR = Path(__file__).parent
-DATA_DIR = TESTS_DIR / "data"
+DATA_DIR = TESTS_DIR / 'data'
+SUFFIX = '.txt'
 
-TEST_JIRA_DATA = DATA_DIR / "test_jira_data.txt"
-TEST_SOURCE_GOOGLE_DATA = DATA_DIR / "test_source_google_data.txt"
-TEST_TARGET_GOOGLE_DATA = DATA_DIR / "test_target_google_data.txt"
+CONFIG_DATA = DATA_DIR / 'config.yaml'
+SOURCE_DATA = DATA_DIR / 'source_data.txt'
+INITIAL_DATA = DATA_DIR / 'initial_data.txt'
 
-class Args:
-    """ Arguments """
-    add = None
-    remove = None
-    test = None
+EXPECTED_DATA_0 = DATA_DIR / "expected_data_0.txt"
+EXPECTED_DATA_1 = DATA_DIR / "expected_data_1.txt"
+EXPECTED_DATA_2 = DATA_DIR / "expected_data_2.txt"
+EXPECTED_DATA_3 = DATA_DIR / "expected_data_3.txt"
+EXPECTED_DATA_4 = DATA_DIR / "expected_data_4.txt"
+EXPECTED_DATA_5 = DATA_DIR / "expected_data_5.txt"
+EXPECTED_DATA_6 = DATA_DIR / "expected_data_6.txt"
+EXPECTED_DATA_7 = DATA_DIR / "expected_data_7.txt"
 
-class TestWdsClass:    # pylint: disable=too-few-public-methods
-    """ Testing class """
+SHEET = "TEST"
 
-    def test_data(self):
-        """ Function testing with fake data from Excel spreadsheet """
-        args = Args()
-        key = "ISSUE"
+class Args:                  #pylint: disable=too-few-public-methods
+    """ Default command line arguments of the script """
+    add = False
+    remove = False
+    noupdate = False
 
-        jira = {}
+def operation(mock_gsheet_class, add, default_columns, inherit_formulas):
+    """ Make the operation with data and return the final data """
 
-        jira_data = pd.read_table(TEST_JIRA_DATA)
-        parsed = jira_data.to_dict()
+    # Arguments set-up
+    args = Args()
+    args.add = add
 
-        flexmock(SourceData, data = jira_data, key_dict = {},
-                 used_key = {}, __init__ = None)
-        jira['TEST'] = SourceData('', '', '')
-        for item in parsed[key]:
-            jira['TEST'].key_dict[parsed[key][item]] = item
-            jira['TEST'].used_key[parsed[key][item]] = False
+    # Prepare the mock Gsheet instance
+    google_data = pd.read_fwf(INITIAL_DATA, encoding='utf-8', dtype=str)
+    gsheet_instance = mock_gsheet_class.return_value
+    gsheet_instance.active_sheets = [SHEET]
+    gsheet_instance.data = {SHEET: google_data}
 
-        data_spreadsheet = {}
-        data_spreadsheet["TEST"] = pd.read_fwf(TEST_SOURCE_GOOGLE_DATA)
-        flexmock(Gsheet, active_sheets = ["TEST"], data = data_spreadsheet,\
-                 __init__ = None)
-        google = Gsheet('', '', '')
+    # Read source data
+    source_data = pd.read_fwf(SOURCE_DATA, encoding='utf-8', dtype=str).to_dict(orient='records')
 
-        sheet_conf = {}
-        sheet_conf["TEST"] = Sheet(0, ' ', False, False, {}, key)
-        for column in jira_data:
-            sheet_conf["TEST"].columns[column] = Column
+    # Configure tests parameters
+    sheet_conf = configure(default_columns, inherit_formulas)
 
-        transform_data(jira, google, sheet_conf, args)
-        assert_frame_equal(google.data["TEST"],
-                           pd.read_fwf(TEST_TARGET_GOOGLE_DATA), check_dtype=False)
+    # Set up source data instance
+    source_data_instance = set_source_data_instance(source_data, sheet_conf, gsheet_instance)
+
+    # Call the function under test
+    transform_data(source_data_instance, gsheet_instance, sheet_conf, args)
+
+    return gsheet_instance.data[SHEET]
+
+def configure(default_columns, inherit_formulas):
+    """ Configure test parameters """
+    header_offset = 0
+    delimiter = ' '
+    sheet_columns = {}
+    key = "G_ISSUE"
+
+    with open(CONFIG_DATA, encoding='utf8') as config_file:
+        config_sheet_columns = yaml.safe_load(config_file.read())
+
+    sheet_conf = {}
+    sheet_conf[SHEET] = Sheet(header_offset, delimiter, default_columns, \
+                              inherit_formulas, sheet_columns, key)
+    for column in config_sheet_columns:
+        sheet_conf[SHEET].columns[column] = Column()
+        sheet_conf[SHEET].columns[column].data = config_sheet_columns[column]
+    return sheet_conf
+
+def set_source_data_instance(source_data, sheet_conf, gsheet_instance):
+    """ Set up source data instance """
+    source_data_instance = {}
+    if sheet_conf[SHEET].default_columns:
+        source_data_instance[SHEET] = SourceData(source_data, \
+            sheet_conf[SHEET], gsheet_instance.data[SHEET])
+    else:
+        source_data_instance[SHEET] = SourceData(source_data, \
+            sheet_conf[SHEET])
+    return source_data_instance
+
+def custom_name_func(testcase_func, param_num, param):
+    """
+    The names of the test cases generated by @parameterized.expand
+    :param testcase_func: will be the function to be tested
+    :param param_num: will be the index of the test case parameters in the list of parameters
+    :param param: (an instance of param) will be the parameters which will be used.
+    :return: test case name
+    """
+    return (f"{testcase_func.__name__}_"
+            f"{parameterized.to_safe_name('_'.join([str(param.args[0]), param_num]))}")
+
+class TestTransformData(unittest.TestCase):
+    """ Test the syncit script functionality """
+    @parameterized.expand([
+        # Order of parameters:
+        # test name, add rows, default columns, inherit formulas, expected data
+        ('disabledparameters', False, False, False, EXPECTED_DATA_0),
+        ('addrows', True, False, False, EXPECTED_DATA_1),
+        ('defaultcolumns', False, True, False, EXPECTED_DATA_2),
+        ('addrows_defaultcolumns', True, True, False, EXPECTED_DATA_3),
+        ('inheritformulas', False, False, True, EXPECTED_DATA_4),
+        ('addrows_inheritformulas', True, False, True, EXPECTED_DATA_5),
+        ('defaultcolumns_inheritformulas', False, True, True, EXPECTED_DATA_6),
+        ('addrows_defaultcolumns_inheritformulas', True, True, True, EXPECTED_DATA_7)
+    ], name_func=custom_name_func)
+
+    @patch('syncit.gsheet.Gsheet', autospec=True)
+    def test_transform_data(self, name, add, default_columns, inherit_formulas, expected_data, \
+            mock_gsheet_class):           #pylint: disable=too-many-arguments,unused-argument
+        """ Testing with fake data """
+        transformed_data = operation(mock_gsheet_class, add, default_columns, inherit_formulas)
+        expected_data = pd.read_fwf(expected_data, encoding='utf-8', dtype=str).fillna('')
+        assert_frame_equal(transformed_data, expected_data, check_dtype=False)

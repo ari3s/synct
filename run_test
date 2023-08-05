@@ -3,4 +3,4 @@
 # Run test
 #
 
-pytest --pyargs tests -W ignore::DeprecationWarning
+pytest --pyargs tests -W ignore::DeprecationWarning -v

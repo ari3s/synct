@@ -1,0 +1,4 @@
+G_ISSUE      G_STATUS     G_PRIORITY  ID        PID                                                        NOTE
+PROJECT-100  In_Progress  high        10325648  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Blue
+PROJECT-102  Closed       urgent      20518495  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Red
+PROJECT-103  In_Progress  medium      10236845  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Silver

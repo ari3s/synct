@@ -81,12 +81,13 @@ def get_sheets_and_data(source_access, config, selected_sheets, google_spreadshe
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
             if config.sheet[sheet_name].default_columns:
-                source_data[sheet_name] = SourceData(source_access, query, \
+                source_data[sheet_name] = SourceData(source_access.get_data(query), \
                     config.sheet[sheet_name], google_spreadsheet.data[sheet_name])
             else:
-                source_data[sheet_name] = SourceData(source_access, query, \
+                source_data[sheet_name] = SourceData(source_access.get_data(query), \
                     config.sheet[sheet_name])
             sheets_list.append(sheet_name)
+    log.check_error()
     return sheets_list, source_data
 
 def normalize_type(value):
@@ -126,7 +127,7 @@ def get_formula(source, google, sheet_name, sheet_conf):
                     sheet_conf[sheet_name].default_columns and \
                     column not in source[sheet_name].data.columns:
                 try:
-                    cell = google.data[sheet_name].at[google.rows[sheet_name]-1, column]
+                    cell = google.data[sheet_name].at[len(google.data[sheet_name])-1, column]
                 except KeyError:
                     continue
                 try:

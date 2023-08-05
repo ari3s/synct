@@ -14,12 +14,10 @@ class SourceData:   # pylint: disable=too-few-public-methods
     key_dict = {}
     used_key = {}
 
-    def __init__(self, source, query, sheet_config, g_sheet=None):
-        """ Read source data """
+    def __init__(self, source_data, sheet_config, g_sheet=None):
+        """ Convert source data """
         self.key_dict = {}
         self.used_key = {}
-        source_data = source.get_data(query)
-        log.check_error()
         converted_data = []
         columns_list = create_columns_list(sheet_config, g_sheet)
         index = 0
