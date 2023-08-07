@@ -105,7 +105,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
         try:
             with open(config_file_name, encoding='utf8') as config_file:
                 config_data = yaml.safe_load(config_file)
-        except OSError as exception:
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
             log.fatal_error(exception)
         self.source = get_input(config_data, CONFIG_FILE_MISSING_INPUT)
         if self.source == BUGZILLA:
