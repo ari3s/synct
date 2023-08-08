@@ -34,6 +34,7 @@ UPDATE_GOOGLE_SHEET = 'update Google sheet: '
 
 # Error messages:
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
+GOOGLE_CREDENTIALS_JSON_FILE = 'Google credentials JSON file: '
 WRONG_HEADER = 'wrong header in sheet '
 
 class Gsheet:   # pylint: disable=too-many-instance-attributes
@@ -77,8 +78,12 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                     credentials_json = os.getenv(GOOGLE_APPLICATION_CREDENTIALS)
                 else:
                     credentials_json = CREDENTIALS_JSON
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    credentials_json, scopes=SCOPES)
+                try:
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        credentials_json, scopes=SCOPES)
+                except (FileNotFoundError, ValueError) as exception:
+                    log.error(GOOGLE_CREDENTIALS_JSON_FILE+credentials_json)
+                    log.fatal_error(exception)
                 self.creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open(TOKEN_PICKLE, 'wb') as self.token:
