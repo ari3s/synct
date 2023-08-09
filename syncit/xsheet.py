@@ -16,6 +16,7 @@ SELECT_INPUT_FILE = 'select input data: '
 
 # Error messages:
 UNKNOWN_FILE_TYPE = 'unknown input file type'
+MISSING_OR_INCORRECT_FILE = 'missing or incorrect input file'
 READING_INPUT_FILE_FAILED = 'reading input file failed'
 
 # Warning messages:
@@ -39,6 +40,8 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             log.debug(engine)
         except KeyError:
             log.fatal_error(UNKNOWN_FILE_TYPE)
+        except TypeError:
+            log.fatal_error(MISSING_OR_INCORRECT_FILE)
 
         log.debug(READ_INPUT_FILE + file_name)
         table_name = config.table if table is None else table
@@ -61,8 +64,7 @@ class Xsheet:   # pylint: disable=too-few-public-methods
                                               skiprows=offset_value, keep_default_na=False)
         except (OSError, ValueError) as exception:
             log.error(exception)
-            log.error(READING_INPUT_FILE_FAILED)
-            self.data = None
+            log.fatal_error(READING_INPUT_FILE_FAILED)
         for column in self.data:
             if  self.data[column].dtypes == 'datetime64[ns]':     # convert date to string
                 self.data[column] = pd.to_datetime(self.data[column]).astype(str)
