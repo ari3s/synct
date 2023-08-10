@@ -81,10 +81,10 @@ def get_sheets_and_data(source_access, config, selected_sheets, google_spreadshe
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
             if config.sheet[sheet_name].default_columns:
-                source_data[sheet_name] = SourceData(source_access.get_data(query), \
+                source_data[sheet_name] = SourceData(source_access.get_data(sheet_name, query), \
                     config.sheet[sheet_name], google_spreadsheet.data[sheet_name])
             else:
-                source_data[sheet_name] = SourceData(source_access.get_data(query), \
+                source_data[sheet_name] = SourceData(source_access.get_data(sheet_name, query), \
                     config.sheet[sheet_name])
             sheets_list.append(sheet_name)
     log.check_error()

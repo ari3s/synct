@@ -12,7 +12,7 @@ JIRA_QUERY = 'Jira query: '
 
 # Error messages:
 JIRA_AUTH_FAILED = 'Jira authorization failed'
-JIRA_QUERY_FAILED = 'Jira query failed'
+JIRA_QUERY_FAILED = 'Jira query failed in the configuration file for the sheet '
 
 class Jira:   # pylint: disable=too-few-public-methods
     """ Jira class """
@@ -32,13 +32,13 @@ class Jira:   # pylint: disable=too-few-public-methods
             log.error(JIRA_AUTH_FAILED)
         self.max_results = max_results
 
-    def get_data(self, query):
+    def get_data(self, sheet, query):
         """ Get data required from Jira server"""
         log.debug(JIRA_QUERY + query)
         try:
             data = self.access.search_issues(jql_str=query, maxResults=self.max_results)
-        except (JIRAError, AttributeError):
+        except (JIRAError, AttributeError) as exception:
             self.access.close()
-            log.error(JIRA_QUERY_FAILED)
-            data = None
+            log.error(JIRA_QUERY_FAILED + sheet + ':\n' + query)
+            log.fatal_error(exception)
         return data

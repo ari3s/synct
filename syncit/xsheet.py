@@ -12,12 +12,14 @@ import syncit.logger as log
 # Debug messages:
 IDENTIFY_FILE_TYPE = 'identify input file type'
 READ_INPUT_FILE = 'read data from the input file: '
-SELECT_INPUT_FILE = 'select input data: '
+INPUT_DATA_QUERY = 'input data query: '
 
 # Error messages:
 UNKNOWN_FILE_TYPE = 'unknown input file type'
 MISSING_OR_INCORRECT_FILE = 'missing or incorrect input file'
 READING_INPUT_FILE_FAILED = 'reading input file failed'
+QUERY_FAILED = 'query failed in the configuration file for the sheet '
+WRONG_OFFSET = 'It could be a wrong offset of the header in the input file.'
 
 # Warning messages:
 IGNORED_TABLE = 'table selection is ignored, not supported in CSV files'
@@ -69,13 +71,16 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             if  self.data[column].dtypes == 'datetime64[ns]':     # convert date to string
                 self.data[column] = pd.to_datetime(self.data[column]).astype(str)
 
-    def get_data(self, sheet_query):
+    def get_data(self, sheet, sheet_query):
         """ Query to input file """
-        log.debug(SELECT_INPUT_FILE + str(sheet_query))
+        log.debug(INPUT_DATA_QUERY + str(sheet_query))
         try:
             data = loads(self.data.query(sheet_query).to_json(orient="records"))
-        except Exception as exception:     # pylint: disable=broad-exception-caught
-            log.error(exception)
-            log.error(READING_INPUT_FILE_FAILED)
-            data = None
+        except (SyntaxError, ValueError) as exception:
+            log.error(QUERY_FAILED + sheet + ':\n' + sheet_query)
+            log.fatal_error(exception)
+        except (pd.errors.UndefinedVariableError) as exception:
+            log.error(QUERY_FAILED + sheet + ':\n' + sheet_query)
+            log.error(WRONG_OFFSET)
+            log.fatal_error(exception)
         return data

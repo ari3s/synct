@@ -16,7 +16,7 @@ BUGZILLA_QUERY = 'Bugzilla query: '
 
 # Error messages:
 BUGZILLA_CONNECTION_FAILURE = 'failed to establish Bugzilla connection'
-BUGZILLA_QUERY_FAILED = 'Bugzilla query failed'
+BUGZILLA_QUERY_FAILED = 'Bugzilla query failed in the configuration file for the sheet '
 
 class Bzilla:
     """ Bugzilla class """
@@ -34,15 +34,15 @@ class Bzilla:
         except:    # pylint: disable=bare-except
             log.error(BUGZILLA_CONNECTION_FAILURE)
 
-    def get_data(self, query):
+    def get_data(self, sheet, query):
         """ Query to Bugzilla """
         log.debug(BUGZILLA_QUERY + str(query))
         try:
             data = self.bzilla_access.query(query)
-        except:    # pylint: disable=bare-except
+        except (AttributeError, TypeError) as exception:
             self.bzilla_logout()
-            log.error(BUGZILLA_QUERY_FAILED)
-            data = None
+            log.error(BUGZILLA_QUERY_FAILED + sheet + ':\n' + str(query))
+            log.fatal_error(exception)
         return data
 
     def bzilla_logout(self):
