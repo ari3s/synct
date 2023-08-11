@@ -27,11 +27,12 @@ class Bzilla:
         self.path = os.path.expanduser(bzilla_api_key)
         self.config = configparser.ConfigParser()
         self.config.read(self.path)
-        Bugzilla.api_key = self.config.get(bzilla_domain, API_KEY)
         try:
+            Bugzilla.api_key = self.config.get(bzilla_domain, API_KEY)
             self.bzilla_access = Bugzilla(url=bzilla_url)
             log.debug(ACCESS_BUGZILLA_SUCCESSFUL)
-        except:    # pylint: disable=bare-except
+        except configparser.Error as exception:
+            log.error(exception)
             log.error(BUGZILLA_CONNECTION_FAILURE)
 
     def get_data(self, sheet, query):
