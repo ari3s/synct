@@ -33,6 +33,7 @@ NO_UPDATE_MODE = 'no update mode (Google spreadsheet update is disabled)'
 # Error messages:
 UNKNOWN_SHEET = 'uknown sheet: '
 UNKNOWN_SOURCE = 'unknown source'
+UNKNOWN_KEY = 'unknown key in the sheet '
 
 def get_cli_parameters():
     """ Get parameters from CLI and check that they are correct """
@@ -112,7 +113,8 @@ def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
             try:
                 if pd.isnull(g_sheet.loc[g_row, (column)]):
                     g_sheet.loc[g_row, (column)] = normalize_type(value)   # fix undefined value
-            except KeyError:                                               # fix undefined variable
+            # Fix undefined variable or value issue
+            except (KeyError, ValueError):
                 g_sheet.loc[g_row, (column)] = normalize_type(value)
 
 def get_formula(source, google, sheet_name, sheet_conf):
@@ -144,7 +146,11 @@ def transform_data(source, google, sheet_conf, args):
         key = sheet_conf[sheet_name].key
         # Update Google sheet data
         for row in google.data[sheet_name].index:
-            key_value = str(google.data[sheet_name][key][row])
+            try:
+                key_value = str(google.data[sheet_name][key][row])
+            except KeyError as exception:
+                log.error(exception)
+                log.fatal_error(UNKNOWN_KEY + sheet_name)
             if key_value in source[sheet_name].key_dict:
                 key_index = source[sheet_name].key_dict[key_value]
                 source[sheet_name].used_key[key_value] = True
