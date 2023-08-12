@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.auth.exceptions import GoogleAuthError
 
 import pandas as pd
 
@@ -35,7 +36,8 @@ UPDATE_GOOGLE_SHEET = 'update Google sheet: '
 # Error messages:
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
 GOOGLE_CREDENTIALS_JSON_FILE = 'Google credentials JSON file: '
-WRONG_HEADER = 'wrong header in sheet '
+WRONG_HEADER = 'wrong header in the sheet '
+WRONG_HEADER_OFFSET = 'header offset could be wrong in the sheet '
 
 class Gsheet:   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
@@ -71,8 +73,9 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 self.creds.refresh(Request())
                 try:
                     self.creds.refresh(Request())
-                except:    # pylint: disable=bare-except
+                except GoogleAuthError as exception:
                     log.error(SPREADSHEET_CONNECTION_FAILURE)
+                    log.fatal_error(exception)
             else:
                 if GOOGLE_APPLICATION_CREDENTIALS in os.environ:
                     credentials_json = os.getenv(GOOGLE_APPLICATION_CREDENTIALS)
@@ -108,7 +111,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def get_sheet(self, sheet):
         """ Read the sheet """
-        log.debug(READ_GOOGLE_SHEET + sheet)
+        log.debug(READ_GOOGLE_SHEET + "'" + sheet + "'")
         try:
             raw_data = self.spreadsheet_access.values().get(
                     spreadsheetId=self.spreadsheet_id,
@@ -121,14 +124,19 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         try:
             header_length = len(raw_data[header_offset])
         except IndexError:
-            log.error(WRONG_HEADER + sheet)
+            log.error(WRONG_HEADER + "'" + sheet + "'")
             return None
         for raw in range(header_offset+1, len(raw_data)):
             raw_length = len(raw_data[raw])
             if raw_length < header_length:
                 raw_data[raw].extend([''] * (header_length - raw_length))
         # Convert data to pandas format
-        return pd.DataFrame(raw_data[header_offset+1:], columns=raw_data[header_offset])
+        try:
+            data = pd.DataFrame(raw_data[header_offset+1:], columns=raw_data[header_offset])
+        except ValueError as exception:
+            log.error(exception)
+            log.fatal_error(WRONG_HEADER_OFFSET + "'" + sheet + "'")
+        return data
 
     def get_spreadsheet(self):
         """ Read the active sheets """
@@ -145,7 +153,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def insert_rows(self, sheet, start_row, inserted_rows):
         """ Insert empty rows in the spreadsheet """
-        log.debug(ADD_ROWS_GOOGLE_SHEET + sheet)
+        log.debug(ADD_ROWS_GOOGLE_SHEET + "'" + sheet + "'")
         body = {
             "requests": [
                 {
@@ -188,7 +196,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 self.insert_rows(sheet, \
                         self.sheets_config[sheet].header_offset+self.rows[sheet]+2, \
                         len(self.data[sheet])-self.rows[sheet])
-            log.debug(UPDATE_GOOGLE_SHEET + sheet)
+            log.debug(UPDATE_GOOGLE_SHEET + "'" + sheet + "'")
             body = {
                 'valueInputOption': 'USER_ENTERED',
                 'data': [
@@ -204,7 +212,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
 
     def update_column_with_links(self, sheet, column, link):
         """ Update the column in the Google sheet with links """
-        log.debug(LINK_UPDATE + 'sheet: ' + sheet + ' col: ' + str(column))
+        log.debug(LINK_UPDATE + 'sheet: ' + "'" + sheet + "'" + ' col: ' + str(column))
         header_offset = self.sheets_config[sheet].header_offset
         col = self.data[sheet].columns.get_loc(column)
         rows = []
