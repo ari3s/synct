@@ -96,7 +96,7 @@ def cell_init_value(g_sheet, column, sheet_config, key_value):
         g_row = None
         # Find a row with the key
         for row in g_sheet.index:
-            if g_sheet.loc[row, (sheet_config.key)] == key_value:
+            if str(g_sheet.loc[row, (sheet_config.key)]) == str(key_value):
                 g_row = row
                 break
         if g_row is not None:         # original value in the default column
