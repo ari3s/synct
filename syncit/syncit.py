@@ -1,8 +1,8 @@
 """
 syncit
 
-The script gets data from the particular source and copies the data in Google
-spreadsheet as it is defined in the config file.
+The script gets data from the particular source and copies the data into
+the target spreadsheet as it is defined in the config file.
 """
 import argparse
 import pyperclip
@@ -25,10 +25,10 @@ SCRIPT_FINISHED = 'script finished'
 SCRIPT_STARTED = 'script started'
 
 # Warning messages:
-NOT_AVAILABLE = ': data update from input is not available in Google sheet '
+NOT_AVAILABLE = ': data update from input is not available in the target sheet '
 
 # Info messages:
-NO_UPDATE_MODE = 'no update mode (Google spreadsheet update is disabled)'
+NO_UPDATE_MODE = 'no update mode (target spreadsheet update is disabled)'
 
 # Error messages:
 UNKNOWN_SHEET = 'uknown sheet: '
@@ -41,11 +41,11 @@ def get_cli_parameters():
     parser.add_argument('-c', '--config', type=str, default=CONFIG_FILE,
             help='config file (default: '+CONFIG_FILE+')')
     parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
-            help='use listed Google sheets')
+            help='use the listed target sheets')
     parser.add_argument('-a', '--add', action="store_true",
-            help='enable to add missing items into the Google spreadsheet')
+            help='enable to add missing items into the target spreadsheet')
     parser.add_argument('-r', '--remove', action="store_true",
-            help='enable removing items in the Google spreadsheet')
+            help='enable removing items in the target spreadsheet')
     parser.add_argument('-f', '--file', type=str, default=None,
             help='file name of data source')
     parser.add_argument('-t', '--table', type=str, default=None,
@@ -57,7 +57,7 @@ def get_cli_parameters():
     parser.add_argument('-q', '--quiet', action='store_const', const=-1,
             default=0, dest='verbosity', help='quiet output (show errors only)')
     parser.add_argument('-n', '--noupdate', action="store_true",
-            help='disable Google spreadsheet update')
+            help='disable target spreadsheet update')
     args = parser.parse_args()
     log.setup(args.verbosity)
     return args
@@ -75,17 +75,17 @@ def get_sheets(config, selected_sheets):
                 sheets_list.append(item)
     return sheets_list
 
-def get_sheets_and_data(source_access, config, selected_sheets, google_spreadsheet):
+def get_sheets_and_data(source_access, config, selected_sheets, target_spreadsheet):
     """ Get valid sheets list and source data """
     source_data = {}
     sheets_list = []
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
             if config.sheet[sheet_name].default_columns:
-                source_data[sheet_name] = SourceData(source_access.get_data(sheet_name, query), \
-                    config.sheet[sheet_name], google_spreadsheet.data[sheet_name])
+                source_data[sheet_name] = SourceData(source_access.data_query(sheet_name, query), \
+                    config.sheet[sheet_name], target_spreadsheet.data[sheet_name])
             else:
-                source_data[sheet_name] = SourceData(source_access.get_data(sheet_name, query), \
+                source_data[sheet_name] = SourceData(source_access.data_query(sheet_name, query), \
                     config.sheet[sheet_name])
             sheets_list.append(sheet_name)
     log.check_error()
@@ -97,39 +97,39 @@ def normalize_type(value):
         value = int(value)
     return value
 
-def update_google_row_data(s_sheet, s_key_index, g_sheet, g_row, formula=None):
-    """ Update the Google row with source data """
-    for column in g_sheet.columns:
+def update_target_row_data(s_sheet, s_key_index, t_sheet, t_row, formula=None):
+    """ Update the target row with source data """
+    for column in t_sheet.columns:
         if column in s_sheet.data.columns:
             value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
             if value == '' and formula and column in formula:
                 value = formula[column]
-            g_sheet.loc[g_row, (column)] = value
+            t_sheet.loc[t_row, (column)] = value
         else:
             if formula and column in formula:
                 value = formula[column]
             else:
                 value = ""
             try:
-                if pd.isnull(g_sheet.loc[g_row, (column)]):
-                    g_sheet.loc[g_row, (column)] = normalize_type(value)   # fix undefined value
+                if pd.isnull(t_sheet.loc[t_row, (column)]):
+                    t_sheet.loc[t_row, (column)] = normalize_type(value)   # fix undefined value
             # Fix undefined variable or value issue
             except (KeyError, ValueError):
-                g_sheet.loc[g_row, (column)] = normalize_type(value)
+                t_sheet.loc[t_row, (column)] = normalize_type(value)
 
-def get_formula(source, google, sheet_name, sheet_conf):
+def get_formula(source, target, sheet_name, sheet_conf):
     """
-    Get formula in Google columns, that are not included in the source columns,
-    from the last row.
+    Get formula in the target spreadsheet columns, that are not included
+    in the source columns, from the last row.
     """
     formula = {}
     if sheet_conf[sheet_name].inherit_formulas:
-        for column in google.data[sheet_name].columns:
+        for column in target.data[sheet_name].columns:
             if column not in list(sheet_conf[sheet_name].columns.keys()) or \
                     sheet_conf[sheet_name].default_columns and \
                     column not in source[sheet_name].data.columns:
                 try:
-                    cell = google.data[sheet_name].at[len(google.data[sheet_name])-1, column]
+                    cell = target.data[sheet_name].at[len(target.data[sheet_name])-1, column]
                 except KeyError:
                     continue
                 try:
@@ -139,15 +139,15 @@ def get_formula(source, google, sheet_name, sheet_conf):
                     continue
     return formula
 
-def transform_data(source, google, sheet_conf, args):
-    """ Copy transformed data from source to the target Google spreadsheet """
-    missing_all_google_key_values = []
-    for sheet_name in google.active_sheets:
+def transform_data(source, target, sheet_conf, args):
+    """ Copy transformed data from the source to the target spreadsheet """
+    missing_all_target_key_values = []
+    for sheet_name in target.active_sheets:
         key = sheet_conf[sheet_name].key
-        # Update Google sheet data
-        for row in google.data[sheet_name].index:
+        # Update target sheet data
+        for row in target.data[sheet_name].index:
             try:
-                key_value = str(google.data[sheet_name][key][row])
+                key_value = str(target.data[sheet_name][key][row])
             except KeyError as exception:
                 log.error(exception)
                 log.fatal_error(UNKNOWN_KEY + sheet_name)
@@ -163,51 +163,25 @@ def transform_data(source, google, sheet_conf, args):
                     log.info(message)
                 else:
                     log.warning(message)
-                google.remove_rows[sheet_name].append(row)
+                target.remove_rows[sheet_name].append(row)
                 continue
-            update_google_row_data(source[sheet_name], key_index, google.data[sheet_name], row)
-        # Identify missing keys in the Google sheet which data are available from the source
-        missing_google_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
+            update_target_row_data(source[sheet_name], key_index, target.data[sheet_name], row)
+        # Identify missing keys in the target sheet which data are available from the source
+        missing_target_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
                 sheet_conf[sheet_name], args.add)
         if args.add and not args.noupdate:
-            formula = get_formula(source, google, sheet_name, sheet_conf)
-            for key_value in missing_google_keys:
-                update_google_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
-                        google.data[sheet_name], len(google.data[sheet_name]), formula)
-        missing_all_google_key_values = missing_all_google_key_values + missing_google_keys
+            formula = get_formula(source, target, sheet_name, sheet_conf)
+            for key_value in missing_target_keys:
+                update_target_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
+                        target.data[sheet_name], len(target.data[sheet_name]), formula)
+        missing_all_target_key_values = missing_all_target_key_values + missing_target_keys
 
-    if missing_all_google_key_values:
-        pyperclip.copy('\n'.join(map(str, missing_all_google_key_values)))
-
-def update_google_data(google, sheets_list, sheet_conf, enable_remove):
-    """ Update Google spreadsheet """
-    google.update_spreadsheet()
-    for sheet_name in sheets_list:
-        for column in sheet_conf[sheet_name].columns:
-            if sheet_conf[sheet_name].columns[column].link and \
-                    sheet_conf[sheet_name].key == column:
-                google.update_column_with_links(sheet_name, column, \
-                        sheet_conf[sheet_name].columns[column].link)
-        if enable_remove and google.remove_rows[sheet_name]:
-            removals = {}
-            start_row = None
-            previous_row = None
-            for current_row in sorted(google.remove_rows[sheet_name]):
-                if start_row is None or current_row != previous_row + 1:
-                    start_row = current_row
-                    previous_row = current_row
-                    removals[start_row] = 1
-                else:
-                    previous_row = current_row
-                    removals[start_row] = removals[start_row] + 1
-            for row in sorted(removals, reverse=True):
-                google.delete_rows(sheet_name, row+sheet_conf[sheet_name].header_offset+1, \
-                        removals[row])
+    if missing_all_target_key_values:
+        pyperclip.copy('\n'.join(map(str, missing_all_target_key_values)))
 
 def main():
     """
-    Get the config file, read source data and write them
-    into the google spreadsheet.
+    Get the config file, read source data and write them into the target spreadsheet.
     """
     log.debug(SCRIPT_STARTED)
     args = get_cli_parameters()
@@ -224,10 +198,10 @@ def main():
         log.error(UNKNOWN_SOURCE)
     log.check_error()    # if a source error occured, terminate the script
     valid_sheets = get_sheets(config, args.sheet)
-    google_spreadsheet = Gsheet(config.spreadsheet_id, valid_sheets, config.sheet)
+    target_spreadsheet = Gsheet(config.spreadsheet_id, valid_sheets, config.sheet)
     used_sheets_list, data = get_sheets_and_data(source_access, config, \
-            valid_sheets, google_spreadsheet)
-    transform_data(data, google_spreadsheet, config.sheet, args)
+            valid_sheets, target_spreadsheet)
+    transform_data(data, target_spreadsheet, config.sheet, args)
     if not args.noupdate:
-        update_google_data(google_spreadsheet, used_sheets_list, config.sheet, args.remove)
+        target_spreadsheet.update_data(used_sheets_list, config.sheet, args.remove)
     log.debug(SCRIPT_FINISHED)

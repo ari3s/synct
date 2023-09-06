@@ -68,7 +68,7 @@ CONFIG_FILE_MISSING_JIRA_URL = 'Jira server url is not set in the config file'
 CONFIG_FILE_MISSING_FILE_TYPE = 'missing type of the input file'
 CONFIG_FILE_WRONG_FILE_TYPE = 'wrong type of the input file'
 
-# Error messages - Google spreadsheet:
+# Error messages - target spreadsheet:
 CONFIG_FILE_MISSING_KEY = 'missing key in the config file'
 CONFIG_FILE_MISSING_QUERY = 'query is not set in the config file for the sheet '
 CONFIG_FILE_MISSING_SHEET = 'no sheet is set in the config file'
@@ -169,7 +169,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
             log.error(CONFIG_FILE_MISSING_SHEET)
 
 def get_sheet_config(config_data, spreadsheet):
-    """ Get Google sheet params """
+    """ Get target sheet params """
     key = None
     columns = {}
     if spreadsheet:

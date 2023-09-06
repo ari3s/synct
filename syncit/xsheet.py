@@ -10,22 +10,22 @@ import pandas as pd
 import syncit.logger as log
 
 # Debug messages:
-IDENTIFY_FILE_TYPE = 'identify input file type'
+IDENTIFY_INPUT_FILE_TYPE = 'identify input file type'
 READ_INPUT_FILE = 'read data from the input file: '
 INPUT_DATA_QUERY = 'input data query: '
 
 # Error messages:
-UNKNOWN_FILE_TYPE = 'unknown input file type'
-MISSING_OR_INCORRECT_FILE = 'missing or incorrect input file'
+UNKNOWN_INPUT_FILE_TYPE = 'unknown input file type'
+MISSING_OR_INCORRECT_INPUT_FILE = 'missing or incorrect input file'
 READING_INPUT_FILE_FAILED = 'reading input file failed'
 QUERY_FAILED = 'query failed in the configuration file for the sheet '
-WRONG_OFFSET = 'It could be a wrong offset of the header in the input file.'
+WRONG_OFFSET_INPUT_FILE = 'it could be a wrong offset of the header in the input file'
 
 # Warning messages:
 IGNORED_TABLE = 'table selection is ignored, not supported in CSV files'
 
-# Spreadsheet engines per file name extension
-engines = {'.csv': 'python', '.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'openpyxl'}
+# Input spreadsheet engines per file name extension
+input_engines = {'.csv': 'python', '.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'openpyxl'}
 
 class Xsheet:   # pylint: disable=too-few-public-methods
     """ Input spreadsheet file class """
@@ -35,15 +35,15 @@ class Xsheet:   # pylint: disable=too-few-public-methods
         Idetify data format of the the local file
         and read data that will be selected later on.
         """
-        log.debug(IDENTIFY_FILE_TYPE)
+        log.debug(IDENTIFY_INPUT_FILE_TYPE)
         file_name = config.name if file is None else file
         try:
-            engine = engines[pathlib.Path(file_name).suffix]
+            engine = input_engines[pathlib.Path(file_name).suffix]
             log.debug(engine)
         except KeyError:
-            log.fatal_error(UNKNOWN_FILE_TYPE)
+            log.fatal_error(UNKNOWN_INPUT_FILE_TYPE)
         except TypeError:
-            log.fatal_error(MISSING_OR_INCORRECT_FILE)
+            log.fatal_error(MISSING_OR_INCORRECT_INPUT_FILE)
 
         log.debug(READ_INPUT_FILE + file_name)
         table_name = config.table if table is None else table
@@ -71,7 +71,7 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             if  self.data[column].dtypes == 'datetime64[ns]':     # convert date to string
                 self.data[column] = pd.to_datetime(self.data[column]).astype(str)
 
-    def get_data(self, sheet, sheet_query):
+    def data_query(self, sheet, sheet_query):
         """ Query to input file """
         log.debug(INPUT_DATA_QUERY + str(sheet_query))
         try:
@@ -81,6 +81,6 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             log.fatal_error(exception)
         except (pd.errors.UndefinedVariableError) as exception:
             log.error(QUERY_FAILED + sheet + ':\n' + sheet_query)
-            log.error(WRONG_OFFSET)
+            log.error(WRONG_OFFSET_INPUT_FILE)
             log.fatal_error(exception)
         return data

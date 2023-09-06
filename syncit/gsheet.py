@@ -172,7 +172,7 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         self.request_operation(self.spreadsheet_access.batchUpdate, body)
 
     def delete_rows(self, sheet, start_row, deleted_rows):
-        """ Delete one row in the spreadsheet """
+        """ Delete rows in the spreadsheet """
         body = {
             "requests": [
                 {
@@ -261,3 +261,28 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 sleep(delay)                        # delay in sec
                 delay = DELAY_MULTIPLIER * delay    # prolong the next delay
         return False                                # unsuccessful, this way should never happen
+
+    def update_data(self, sheets_list, sheet_conf, enable_remove):
+        """ Update the target spreadsheet """
+        self.update_spreadsheet()
+        for sheet_name in sheets_list:
+            for column in sheet_conf[sheet_name].columns:
+                if sheet_conf[sheet_name].columns[column].link and \
+                        sheet_conf[sheet_name].key == column:
+                    self.update_column_with_links(sheet_name, column, \
+                            sheet_conf[sheet_name].columns[column].link)
+            if enable_remove and self.remove_rows[sheet_name]:
+                removals = {}
+                start_row = None
+                previous_row = None
+                for current_row in sorted(self.remove_rows[sheet_name]):
+                    if start_row is None or current_row != previous_row + 1:
+                        start_row = current_row
+                        previous_row = current_row
+                        removals[start_row] = 1
+                    else:
+                        previous_row = current_row
+                        removals[start_row] = removals[start_row] + 1
+                for row in sorted(removals, reverse=True):
+                    self.delete_rows(sheet_name, row+sheet_conf[sheet_name].header_offset+1, \
+                            removals[row])

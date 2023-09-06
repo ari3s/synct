@@ -32,7 +32,7 @@ class Jira:   # pylint: disable=too-few-public-methods
             log.error(JIRA_AUTH_FAILED)
         self.max_results = max_results
 
-    def get_data(self, sheet, query):
+    def data_query(self, sheet, query):
         """ Get data required from Jira server"""
         log.debug(JIRA_QUERY + query)
         try:

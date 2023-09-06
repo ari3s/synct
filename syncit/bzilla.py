@@ -35,7 +35,7 @@ class Bzilla:
             log.error(exception)
             log.error(BUGZILLA_CONNECTION_FAILURE)
 
-    def get_data(self, sheet, query):
+    def data_query(self, sheet, query):
         """ Query to Bugzilla """
         log.debug(BUGZILLA_QUERY + str(query))
         try:

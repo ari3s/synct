@@ -6,7 +6,7 @@ import pandas as pd
 import syncit.logger as log
 
 # Warning messages:
-MISSING_IN_THE_SPREADSHEET = 'missing in Google sheet'
+MISSING_IN_THE_TARGET_SPREADSHEET = 'missing in the target spreadsheet'
 
 class SourceData:   # pylint: disable=too-few-public-methods
     """ Source data class """
@@ -14,12 +14,12 @@ class SourceData:   # pylint: disable=too-few-public-methods
     key_dict = {}
     used_key = {}
 
-    def __init__(self, source_data, sheet_config, g_sheet=None):
+    def __init__(self, source_data, sheet_config, target_sheet=None):
         """ Convert source data """
         self.key_dict = {}
         self.used_key = {}
         converted_data = []
-        columns_list = create_columns_list(sheet_config, g_sheet)
+        columns_list = create_columns_list(sheet_config, target_sheet)
         index = 0
         for source_item in source_data:
             raw = {}
@@ -34,7 +34,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
                 except TypeError:
                     continue
             for column in columns_list:
-                raw[column] = cell_init_value(g_sheet, column, sheet_config, key_value)
+                raw[column] = cell_init_value(target_sheet, column, sheet_config, key_value)
                 config_column = column in sheet_config.columns
                 value = get_value(source_item, sheet_config, column)
                 if value is None:
@@ -67,7 +67,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
                     continue
                 missing_keys.append(str(key_value))
                 message = key + ': ' + str(key_value) + ': ' + \
-                        MISSING_IN_THE_SPREADSHEET + ' ' + sheet
+                        MISSING_IN_THE_TARGET_SPREADSHEET + ' ' + sheet
                 if enable_add:
                     log.info(message)
                 else:
@@ -89,25 +89,25 @@ class SourceData:   # pylint: disable=too-few-public-methods
                 continue
         return found
 
-def cell_init_value(g_sheet, column, sheet_config, key_value):
+def cell_init_value(target_sheet, column, sheet_config, key_value):
     """ Set an initial value of the cell """
     value = ''
-    if g_sheet is not None and column in g_sheet.columns:
-        g_row = None
+    if target_sheet is not None and column in target_sheet.columns:
+        target_row = None
         # Find a row with the key
-        for row in g_sheet.index:
-            if str(g_sheet.loc[row, (sheet_config.key)]) == str(key_value):
-                g_row = row
+        for row in target_sheet.index:
+            if str(target_sheet.loc[row, (sheet_config.key)]) == str(key_value):
+                target_row = row
                 break
-        if g_row is not None:         # original value in the default column
-            value = g_sheet.loc[g_row, (column)]
+        if target_row is not None:         # original value in the default column
+            value = target_sheet.loc[target_row, (column)]
     return value
 
-def create_columns_list(sheet_config, g_sheet):
+def create_columns_list(sheet_config, target_sheet):
     """ Create a columns list """
     columns_list = list(sheet_config.columns.keys())
-    if g_sheet is not None:
-        for column in g_sheet.columns:
+    if target_sheet is not None:
+        for column in target_sheet.columns:
             if column not in columns_list:
                 columns_list.append(column)
     return columns_list
