@@ -5,6 +5,10 @@ import yaml
 
 import syncit.logger as log
 
+from syncit.bzilla import Bzilla
+from syncit.jira import Jira
+from syncit.xsheet import Xsheet
+
 BUGZILLA = 'BUGZILLA'
 API_KEY = 'API_KEY'
 DOMAIN = 'DOMAIN'
@@ -53,7 +57,6 @@ SPREADSHEET_ = 'spreadsheet: '
 
 # Error messages - config file:
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
-CONFIG_FILE_UNKNOWN_INPUT = 'input is unknown in the config file'
 
 # Error messages - Bugzilla:
 CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE = 'Bugzilla API key file is not set in the config file'
@@ -96,52 +99,20 @@ class Column:
     link: str = None
     delimiter: str = DEFAULT_DELIMITER
 
-class Config:   # pylint: disable=too-many-instance-attributes
+class Config:   # pylint: disable=too-few-public-methods
     """ Config parameters """
 
-    def __init__(self, config_file_name):
+    def __init__(self, args):
         """ Get config data from the config file """
         log.debug(READ_CONFIG_FILE)
         try:
-            with open(config_file_name, encoding='utf8') as config_file:
+            with open(args.config, encoding='utf8') as config_file:
                 config_data = yaml.safe_load(config_file)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
             log.fatal_error(exception)
-        self.source = get_input(config_data, CONFIG_FILE_MISSING_INPUT)
-        if self.source == BUGZILLA:
-            self.config_bugzilla(config_data)
-        elif self.source == JIRA:
-            self.config_jira(config_data)
-        elif self.source == FILE:
-            self.config_xsheet(config_data)
-        else:
-            log.error(self.source + ' ' + CONFIG_FILE_UNKNOWN_INPUT)
+        self.source = get_source(config_data, args)
         self.config_gsheet(config_data)
         log.check_error()
-
-    def config_bugzilla(self, config_data):
-        """ Configure Bugzilla params """
-        self.bugzilla_domain = get_config(config_data[BUGZILLA], DOMAIN, \
-                CONFIG_FILE_MISSING_BUGZILLA_DOMAIN)
-        self.bugzilla_url = get_config(config_data[BUGZILLA], URL, \
-                CONFIG_FILE_MISSING_BUGZILLA_URL)
-        self.bugzilla_api_key = get_config(config_data[BUGZILLA], API_KEY, \
-                CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE)
-
-    def config_jira(self, config_data):
-        """ Configure Jira params """
-        self.jira_server = get_config(config_data[JIRA], SERVER, CONFIG_FILE_MISSING_JIRA_URL)
-        self.jira_token = get_config(config_data[JIRA], TOKEN, CONFIG_FILE_MISSING_JIRA_TOKEN)
-        self.jira_max_results = int(get_config_with_default(config_data[JIRA], \
-                MAX_RESULTS, DEFAULT_MAX_RESULTS))
-
-    def config_xsheet(self, config_data):
-        """ Configure input file params """
-        if get_config(config_data[FILE], TYPE, CONFIG_FILE_MISSING_FILE_TYPE) != SPREADSHEET:
-            log.fatal_error(CONFIG_FILE_WRONG_FILE_TYPE)
-        self.name = get_config_with_default(config_data[FILE], FILE_NAME, None)
-        self.table = get_config_with_default(config_data[FILE], TABLE, None)
-        self.offset = get_config_with_default(config_data[FILE], OFFSET, DEFAULT_HEADER_OFFSET)
 
     def config_gsheet(self, config_data):
         """ Configure Google spreadsheet params """
@@ -167,6 +138,54 @@ class Config:   # pylint: disable=too-many-instance-attributes
                     log.error(CONFIG_FILE_MISSING_KEY + ' (' + SHEET + ': ' + name + ')')
         else:
             log.error(CONFIG_FILE_MISSING_SHEET)
+
+def get_source(config_data, args):
+    """ Get input presented in the config file """
+    param = None
+    if BUGZILLA in config_data:
+        param = BUGZILLA
+        source = access_bugzilla(config_data)
+    elif JIRA in config_data:
+        param = JIRA
+        source = access_jira(config_data)
+    elif FILE in config_data:
+        param = FILE
+        source = access_xsheet(config_data, args)
+    else:
+        log.error(CONFIG_FILE_MISSING_INPUT)
+    try:
+        value_str = str(config_data[param])
+    except KeyError:
+        log.check_error()
+    log.debug(param + ': ' + value_str)
+    return source
+
+def access_bugzilla(config_data):
+    """ Set up Bugzilla access """
+    bugzilla_domain = get_config(config_data[BUGZILLA], DOMAIN, \
+            CONFIG_FILE_MISSING_BUGZILLA_DOMAIN)
+    bugzilla_url = get_config(config_data[BUGZILLA], URL, \
+            CONFIG_FILE_MISSING_BUGZILLA_URL)
+    bugzilla_api_key = get_config(config_data[BUGZILLA], API_KEY, \
+            CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE)
+    return Bzilla(bugzilla_domain, bugzilla_url, bugzilla_api_key)
+
+def access_jira(config_data):
+    """ Set up Jira access """
+    jira_server = get_config(config_data[JIRA], SERVER, CONFIG_FILE_MISSING_JIRA_URL)
+    jira_token = get_config(config_data[JIRA], TOKEN, CONFIG_FILE_MISSING_JIRA_TOKEN)
+    jira_max_results = int(get_config_with_default(config_data[JIRA], \
+            MAX_RESULTS, DEFAULT_MAX_RESULTS))
+    return Jira(jira_server, jira_token, jira_max_results)
+
+def access_xsheet(config_data, args):
+    """ Set up input file access and parameters """
+    if get_config(config_data[FILE], TYPE, CONFIG_FILE_MISSING_FILE_TYPE) != SPREADSHEET:
+        log.fatal_error(CONFIG_FILE_WRONG_FILE_TYPE)
+    name = get_config_with_default(config_data[FILE], FILE_NAME, None)
+    table = get_config_with_default(config_data[FILE], TABLE, None)
+    offset = get_config_with_default(config_data[FILE], OFFSET, DEFAULT_HEADER_OFFSET)
+    return Xsheet(args, name, table, offset)
 
 def get_sheet_config(config_data, spreadsheet):
     """ Get target sheet params """
@@ -263,21 +282,3 @@ def get_config_with_default(config_data, param, default_value):
         default_info = ' (default value)'
     log.debug(param + ': ' + str(value) + default_info)
     return value
-
-def get_input(config_data, error_message):
-    """ Get input presented in the config file """
-    param = None
-    if BUGZILLA in config_data:
-        param = BUGZILLA
-    elif JIRA in config_data:
-        param = JIRA
-    elif FILE in config_data:
-        param = FILE
-    else:
-        log.error(error_message)
-    try:
-        value_str = str(config_data[param])
-    except KeyError:
-        log.check_error()
-    log.debug(param + ': ' + value_str)
-    return param

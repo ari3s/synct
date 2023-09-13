@@ -30,13 +30,13 @@ input_engines = {'.csv': 'python', '.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'open
 class Xsheet:   # pylint: disable=too-few-public-methods
     """ Input spreadsheet file class """
 
-    def __init__(self, config, file, table, offset):
+    def __init__(self, args, name, table, offset):
         """
         Idetify data format of the the local file
         and read data that will be selected later on.
         """
         log.debug(IDENTIFY_INPUT_FILE_TYPE)
-        file_name = config.name if file is None else file
+        file_name = name if args.file is None else args.file
         try:
             engine = input_engines[pathlib.Path(file_name).suffix]
             log.debug(engine)
@@ -46,8 +46,8 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             log.fatal_error(MISSING_OR_INCORRECT_INPUT_FILE)
 
         log.debug(READ_INPUT_FILE + file_name)
-        table_name = config.table if table is None else table
-        offset_value = config.offset if offset is None else offset
+        table_name = table if args.table is None else args.table
+        offset_value = offset if args.offset is None else args.offset
         try:
             # suppress warnig: Workbook contains no default style, apply openpyxl's default
             with warnings.catch_warnings(record=True):

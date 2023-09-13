@@ -12,11 +12,8 @@ import pandas as pd
 import syncit.logger as log
 
 from syncit.config import Config
-from syncit.bzilla import Bzilla
-from syncit.jira import Jira
 from syncit.gsheet import Gsheet
 from syncit.source import SourceData
-from syncit.xsheet import Xsheet
 
 CONFIG_FILE = 'syncit.yaml'
 
@@ -32,7 +29,6 @@ NO_UPDATE_MODE = 'no update mode (target spreadsheet update is disabled)'
 
 # Error messages:
 UNKNOWN_SHEET = 'uknown sheet: '
-UNKNOWN_SOURCE = 'unknown source'
 UNKNOWN_KEY = 'unknown key in the sheet '
 
 def get_cli_parameters():
@@ -75,17 +71,19 @@ def get_sheets(config, selected_sheets):
                 sheets_list.append(item)
     return sheets_list
 
-def get_sheets_and_data(source_access, config, selected_sheets, target_spreadsheet):
+def get_sheets_and_data(config, selected_sheets, target_spreadsheet):
     """ Get valid sheets list and source data """
     source_data = {}
     sheets_list = []
     for sheet_name, query in config.queries.items():
         if sheet_name in selected_sheets:
             if config.sheet[sheet_name].default_columns:
-                source_data[sheet_name] = SourceData(source_access.data_query(sheet_name, query), \
+                source_data[sheet_name] = SourceData( \
+                    config.source.data_query(sheet_name, query), \
                     config.sheet[sheet_name], target_spreadsheet.data[sheet_name])
             else:
-                source_data[sheet_name] = SourceData(source_access.data_query(sheet_name, query), \
+                source_data[sheet_name] = SourceData( \
+                    config.source.data_query(sheet_name, query), \
                     config.sheet[sheet_name])
             sheets_list.append(sheet_name)
     log.check_error()
@@ -187,20 +185,10 @@ def main():
     args = get_cli_parameters()
     if args.noupdate:
         log.info(NO_UPDATE_MODE)
-    config = Config(args.config)
-    if config.source == 'BUGZILLA':
-        source_access = Bzilla(config.bugzilla_domain, config.bugzilla_url, config.bugzilla_api_key)
-    elif config.source == 'JIRA':
-        source_access = Jira(config.jira_server, config.jira_token, config.jira_max_results)
-    elif config.source == 'FILE':
-        source_access = Xsheet(config, args.file, args.table, args.offset)
-    else:
-        log.error(UNKNOWN_SOURCE)
-    log.check_error()    # if a source error occured, terminate the script
+    config = Config(args)
     valid_sheets = get_sheets(config, args.sheet)
     target_spreadsheet = Gsheet(config.spreadsheet_id, valid_sheets, config.sheet)
-    used_sheets_list, data = get_sheets_and_data(source_access, config, \
-            valid_sheets, target_spreadsheet)
+    used_sheets_list, data = get_sheets_and_data(config, valid_sheets, target_spreadsheet)
     transform_data(data, target_spreadsheet, config.sheet, args)
     if not args.noupdate:
         target_spreadsheet.update_data(used_sheets_list, config.sheet, args.remove)
