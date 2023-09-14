@@ -28,7 +28,6 @@ NOT_AVAILABLE = ': data update from input is not available in the target sheet '
 NO_UPDATE_MODE = 'no update mode (target spreadsheet update is disabled)'
 
 # Error messages:
-UNKNOWN_SHEET = 'uknown sheet: '
 UNKNOWN_KEY = 'unknown key in the sheet '
 
 def get_cli_parameters():
@@ -58,36 +57,20 @@ def get_cli_parameters():
     log.setup(args.verbosity)
     return args
 
-def get_sheets(config, selected_sheets):
-    """ Get valid sheets list """
-    sheets_list = []
-    if not selected_sheets:
-        sheets_list = config.sheets
-    else:
-        for item in selected_sheets:
-            if not item in config.sheets:
-                log.error(UNKNOWN_SHEET + item)
-            else:
-                sheets_list.append(item)
-    return sheets_list
-
-def get_sheets_and_data(config, selected_sheets, target_spreadsheet):
-    """ Get valid sheets list and source data """
+def get_data(config, target_spreadsheet):
+    """ Get source data """
     source_data = {}
-    sheets_list = []
     for sheet_name, query in config.queries.items():
-        if sheet_name in selected_sheets:
-            if config.sheet[sheet_name].default_columns:
-                source_data[sheet_name] = SourceData( \
-                    config.source.data_query(sheet_name, query), \
-                    config.sheet[sheet_name], target_spreadsheet.data[sheet_name])
-            else:
-                source_data[sheet_name] = SourceData( \
-                    config.source.data_query(sheet_name, query), \
-                    config.sheet[sheet_name])
-            sheets_list.append(sheet_name)
+        if config.sheets[sheet_name].default_columns:
+            source_data[sheet_name] = SourceData( \
+                config.source.data_query(sheet_name, query), \
+                config.sheets[sheet_name], target_spreadsheet.data[sheet_name])
+        else:
+            source_data[sheet_name] = SourceData( \
+                config.source.data_query(sheet_name, query), \
+                config.sheets[sheet_name])
     log.check_error()
-    return sheets_list, source_data
+    return source_data
 
 def normalize_type(value):
     """ Avoid numpy type int64 issue that is not allowed in JSON """
@@ -115,16 +98,16 @@ def update_target_row_data(s_sheet, s_key_index, t_sheet, t_row, formula=None):
             except (KeyError, ValueError):
                 t_sheet.loc[t_row, (column)] = normalize_type(value)
 
-def get_formula(source, target, sheet_name, sheet_conf):
+def get_formula(source, target, sheet_name):
     """
     Get formula in the target spreadsheet columns, that are not included
     in the source columns, from the last row.
     """
     formula = {}
-    if sheet_conf[sheet_name].inherit_formulas:
+    if target.sheets_config[sheet_name].inherit_formulas:
         for column in target.data[sheet_name].columns:
-            if column not in list(sheet_conf[sheet_name].columns.keys()) or \
-                    sheet_conf[sheet_name].default_columns and \
+            if column not in list(target.sheets_config[sheet_name].columns.keys()) or \
+                    target.sheets_config[sheet_name].default_columns and \
                     column not in source[sheet_name].data.columns:
                 try:
                     cell = target.data[sheet_name].at[len(target.data[sheet_name])-1, column]
@@ -137,11 +120,11 @@ def get_formula(source, target, sheet_name, sheet_conf):
                     continue
     return formula
 
-def transform_data(source, target, sheet_conf, args):
+def transform_data(source, target, args):
     """ Copy transformed data from the source to the target spreadsheet """
     missing_all_target_key_values = []
     for sheet_name in target.active_sheets:
-        key = sheet_conf[sheet_name].key
+        key = target.sheets_config[sheet_name].key
         # Update target sheet data
         for row in target.data[sheet_name].index:
             try:
@@ -166,9 +149,9 @@ def transform_data(source, target, sheet_conf, args):
             update_target_row_data(source[sheet_name], key_index, target.data[sheet_name], row)
         # Identify missing keys in the target sheet which data are available from the source
         missing_target_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
-                sheet_conf[sheet_name], args.add)
+                target.sheets_config[sheet_name], args.add)
         if args.add and not args.noupdate:
-            formula = get_formula(source, target, sheet_name, sheet_conf)
+            formula = get_formula(source, target, sheet_name)
             for key_value in missing_target_keys:
                 update_target_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
                         target.data[sheet_name], len(target.data[sheet_name]), formula)
@@ -186,10 +169,9 @@ def main():
     if args.noupdate:
         log.info(NO_UPDATE_MODE)
     config = Config(args)
-    valid_sheets = get_sheets(config, args.sheet)
-    target_spreadsheet = Gsheet(config.spreadsheet_id, valid_sheets, config.sheet)
-    used_sheets_list, data = get_sheets_and_data(config, valid_sheets, target_spreadsheet)
-    transform_data(data, target_spreadsheet, config.sheet, args)
+    target_spreadsheet = Gsheet(config)
+    data = get_data(config, target_spreadsheet)
+    transform_data(data, target_spreadsheet, args)
     if not args.noupdate:
-        target_spreadsheet.update_data(used_sheets_list, config.sheet, args.remove)
+        target_spreadsheet.update_data(args.remove)
     log.debug(SCRIPT_FINISHED)

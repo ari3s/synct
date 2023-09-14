@@ -46,12 +46,12 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
     remove_rows = {}
     active_sheets = []
 
-    def __init__(self, spreadsheet_id, sheets, sheets_config):
+    def __init__(self, config):
         """ Acccess the spreadsheet and read data """
-        self.spreadsheet_id = spreadsheet_id
+        self.spreadsheet_id = config.spreadsheet_id
         self.access_spreadsheet()
-        self.active_sheets = sheets
-        self.sheets_config = sheets_config
+        self.active_sheets = list(config.sheets.keys())
+        self.sheets_config = config.sheets
         # Get relevant data sheets
         self.get_spreadsheet()
 
@@ -262,15 +262,15 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 delay = DELAY_MULTIPLIER * delay    # prolong the next delay
         return False                                # unsuccessful, this way should never happen
 
-    def update_data(self, sheets_list, sheet_conf, enable_remove):
+    def update_data(self, enable_remove):
         """ Update the target spreadsheet """
         self.update_spreadsheet()
-        for sheet_name in sheets_list:
-            for column in sheet_conf[sheet_name].columns:
-                if sheet_conf[sheet_name].columns[column].link and \
-                        sheet_conf[sheet_name].key == column:
+        for sheet_name in self.active_sheets:
+            for column in self.sheets_config[sheet_name].columns:
+                if self.sheets_config[sheet_name].columns[column].link and \
+                        self.sheets_config[sheet_name].key == column:
                     self.update_column_with_links(sheet_name, column, \
-                            sheet_conf[sheet_name].columns[column].link)
+                            self.sheets_config[sheet_name].columns[column].link)
             if enable_remove and self.remove_rows[sheet_name]:
                 removals = {}
                 start_row = None
@@ -284,5 +284,5 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                         previous_row = current_row
                         removals[start_row] = removals[start_row] + 1
                 for row in sorted(removals, reverse=True):
-                    self.delete_rows(sheet_name, row+sheet_conf[sheet_name].header_offset+1, \
-                            removals[row])
+                    self.delete_rows(sheet_name, \
+                            row+self.sheets_config[sheet_name].header_offset+1, removals[row])

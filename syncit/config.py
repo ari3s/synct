@@ -55,6 +55,9 @@ READ_CONFIG_FILE = 'read config file'
 SHEET = 'sheet'
 SPREADSHEET_ = 'spreadsheet: '
 
+# Warning messages - command line arguments:
+UNKNOWN_SHEET = 'uknown sheet: '
+
 # Error messages - config file:
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
 
@@ -111,10 +114,10 @@ class Config:   # pylint: disable=too-few-public-methods
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
             log.fatal_error(exception)
         self.source = get_source(config_data, args)
-        self.config_gsheet(config_data)
+        self.config_gsheet(config_data, args)
         log.check_error()
 
-    def config_gsheet(self, config_data):
+    def config_gsheet(self, config_data, args):
         """ Configure Google spreadsheet params """
         self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
                                          CONFIG_FILE_MISSING_SPREADSHEET)
@@ -124,20 +127,27 @@ class Config:   # pylint: disable=too-few-public-methods
         spreadsheet = get_sheet_config(config_data, None)
         log.debug(SPREADSHEET_ + str(spreadsheet))
         if SHEETS in config_data:
-            self.sheets = []
-            self.sheet = {}
+            self.sheets = {}
             self.queries = {}
+            sheets_list = []
             for sheet_item in config_data[SHEETS]:
                 name = sheet_item[NAME]
-                self.sheets.append(name)
+                sheets_list.append(name)
+                if args.sheet and name not in args.sheet:
+                    continue
                 query = get_config(sheet_item, QUERY, CONFIG_FILE_MISSING_QUERY + sheet_item[NAME])
                 self.queries[name] = query
-                self.sheet[name] = get_sheet_config(sheet_item, spreadsheet)
-                log.debug(SHEET + ' ' + name + ': ' + str(self.sheet[name]))
-                if not self.sheet[name].key:
+                self.sheets[name] = get_sheet_config(sheet_item, spreadsheet)
+                log.debug(SHEET + ' ' + name + ': ' + str(self.sheets[name]))
+                if not self.sheets[name].key:
                     log.error(CONFIG_FILE_MISSING_KEY + ' (' + SHEET + ': ' + name + ')')
         else:
             log.error(CONFIG_FILE_MISSING_SHEET)
+        # Validate sheets on the command line
+        if args.sheet:
+            for item in args.sheet:
+                if item not in sheets_list:
+                    log.warning(UNKNOWN_SHEET + item)
 
 def get_source(config_data, args):
     """ Get input presented in the config file """
