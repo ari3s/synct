@@ -5,15 +5,15 @@ The script gets data from the particular source and copies the data into
 the target spreadsheet as it is defined in the config file.
 """
 import argparse
+import importlib
 import pyperclip
 
-import numpy
-import pandas as pd
 import syncit.logger as log
 
 from syncit.config import Config
-from syncit.gsheet import Gsheet
+#from syncit.gsheet import Gsheet
 from syncit.source import SourceData
+from syncit.tsheet import update_target_row_data
 
 CONFIG_FILE = 'syncit.yaml'
 
@@ -71,32 +71,6 @@ def get_data(config, target_spreadsheet):
                 config.sheets[sheet_name])
     log.check_error()
     return source_data
-
-def normalize_type(value):
-    """ Avoid numpy type int64 issue that is not allowed in JSON """
-    if numpy.issubdtype(type(value), int):
-        value = int(value)
-    return value
-
-def update_target_row_data(s_sheet, s_key_index, t_sheet, t_row, formula=None):
-    """ Update the target row with source data """
-    for column in t_sheet.columns:
-        if column in s_sheet.data.columns:
-            value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
-            if value == '' and formula and column in formula:
-                value = formula[column]
-            t_sheet.loc[t_row, (column)] = value
-        else:
-            if formula and column in formula:
-                value = formula[column]
-            else:
-                value = ""
-            try:
-                if pd.isnull(t_sheet.loc[t_row, (column)]):
-                    t_sheet.loc[t_row, (column)] = normalize_type(value)   # fix undefined value
-            # Fix undefined variable or value issue
-            except (KeyError, ValueError):
-                t_sheet.loc[t_row, (column)] = normalize_type(value)
 
 def get_formula(source, target, sheet_name):
     """
@@ -169,7 +143,9 @@ def main():
     if args.noupdate:
         log.info(NO_UPDATE_MODE)
     config = Config(args)
-    target_spreadsheet = Gsheet(config)
+    module = importlib.import_module(config.module)
+    target = getattr(module, config.target)
+    target_spreadsheet = target(config)
     data = get_data(config, target_spreadsheet)
     transform_data(data, target_spreadsheet, args)
     if not args.noupdate:

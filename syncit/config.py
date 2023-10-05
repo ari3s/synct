@@ -78,7 +78,7 @@ CONFIG_FILE_WRONG_FILE_TYPE = 'wrong type of the input file'
 CONFIG_FILE_MISSING_KEY = 'missing key in the config file'
 CONFIG_FILE_MISSING_QUERY = 'query is not set in the config file for the sheet '
 CONFIG_FILE_MISSING_SHEET = 'no sheet is set in the config file'
-CONFIG_FILE_MISSING_SPREADSHEET = 'spreadsheet_id is not set in the config file'
+CONFIG_FILE_MISSING_SPREADSHEET = 'target spreadsheet is not set in the config file'
 CONFIG_FILE_MORE_KEYS = 'more than one key is set in the config file'
 CONFIG_FILE_WRONG_SPREADSHEET = 'spreadsheet_id must be a string in the config file'
 
@@ -102,7 +102,7 @@ class Column:
     link: str = None
     delimiter: str = DEFAULT_DELIMITER
 
-class Config:   # pylint: disable=too-few-public-methods
+class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """ Config parameters """
 
     def __init__(self, args):
@@ -114,15 +114,23 @@ class Config:   # pylint: disable=too-few-public-methods
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
             log.fatal_error(exception)
         self.source = get_source(config_data, args)
-        self.config_gsheet(config_data, args)
+        self.config_tsheet(config_data, args)
         log.check_error()
 
-    def config_gsheet(self, config_data, args):
-        """ Configure Google spreadsheet params """
-        self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
-                                         CONFIG_FILE_MISSING_SPREADSHEET)
-        if not isinstance(self.spreadsheet_id, str):
-            log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
+    def config_tsheet(self, config_data, args):
+        """ Configure target spreadsheet params """
+        if SPREADSHEET in config_data:
+            self.module = 'syncit.ysheet'
+            self.target = 'Ysheet'
+            self.spreadsheet = get_config(config_data, SPREADSHEET,
+                                             CONFIG_FILE_MISSING_SPREADSHEET)
+        else:
+            self.module = 'syncit.gsheet'
+            self.target = 'Gsheet'
+            self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
+                                             CONFIG_FILE_MISSING_SPREADSHEET)
+            if not isinstance(self.spreadsheet_id, str):
+                log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
 
         spreadsheet = get_sheet_config(config_data, None)
         log.debug(SPREADSHEET_ + str(spreadsheet))

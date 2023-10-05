@@ -1,8 +1,7 @@
 # syncit
 
 ## Description
-`syncit` is a Python script that retrieves data from a source and converts it to a Google
-spreadsheet as defined in the configuration file.
+`syncit` is a Python script that retrieves data from a source and converts it to either Google or Excel spreadsheet as defined in the configuration file.
 
 ## Installation
 
@@ -52,9 +51,9 @@ python-bugzilla
 syncit [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
 ```
 
-The script updates data rows in the Google spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
+The script updates data rows in the target Google or Excel spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
 
-The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target Google spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `syncit.yaml` file in the working directory.
+The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `syncit.yaml` file in the working directory.
 
 The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
 
@@ -70,12 +69,12 @@ The `-o OFFSET` parameter defines the header offset in the source file. If the p
 
 By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include the info level, and `-vv` includes the debug level. The `-q` parameter reduces the logging to errors only.
 
-The `-n` parameter disables updating the Google spreadsheet.
+The `-n` parameter disables updating the target spreadsheet.
 
 The `-h` parameter displays a short help message.
 
 ## Configuration file structure
-The configuration file contains reserved words written in capital letters, as well as additional data that defines the transition of input data to the target Google spreadsheet.
+The configuration file contains reserved words written in capital letters, as well as additional data that defines the transition of input data to the target spreadsheet.
 
 Bugzilla REST API documentation: [https://wiki.mozilla.org/Bugzilla:REST_API](https://wiki.mozilla.org/Bugzilla:REST_API)
 
@@ -88,14 +87,14 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `API_KEY`          | File name containing API key to access Bugzilla. |
 | `BUGZILLA`         | The script retrieves data from Bugzilla. It should contain `API_KEY`, `DOMAIN`, and `URL`, optionally `MAX_RESULTS`. |
 | `CONDITION`        | Used with the `FROM` and `GET` reserved words to define a condition that must be met to obtain the required data from the input. |
-| `DEFAULT_COLUMNS`  | Enables usage of default column names. It means they can be omitted in the configuration file, and equal names of source data items and Google spreadsheet columns are paired. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
+| `DEFAULT_COLUMNS`  | Enables usage of default column names. It means they can be omitted in the configuration file, and equal names of source data items and target spreadsheet columns are paired. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `DELIMITER`        | The delimiter separates items in one cell. The default value is space. The delimiter can be defined globally as well as individually in sheets and columns. If `DELIMITER` is defined together with the `GET` reserved word, it defines a separator between items obtained from the `GET` list. |
 | `DOMAIN`           | Bugzilla domain. |
 | `FILE`             | The script retrieves data from local file in spreadsheet format (.ods, .xls, .xlsx, .csv). It should contain `TYPE`, optionally 'FILE_NAME', `OFFSET' and/or `TABLE`. |
 | `FILE_NAME`        | Name of the input file (optional). It is ignored if a file name is defined on the command line. |
 | `FROM`             | Used with the `GET` (and optionally with the `CONDITION`) reserved word to address the higher level of structured identifiers. |
 | `GET`              | Used with the `FROM` (and optionally with the `CONDITION`) reserved word to address the list of lower level structured identifiers with explicit values, which can be regular expressions. |
-| `HEADER_OFFSET`    | The first row of the Google spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0, which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. It can be defined either globally or specifically for each sheet. |
+| `HEADER_OFFSET`    | The first row of the target spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0, which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. It can be defined either globally or specifically for each sheet. |
 | `INHERIT_FORMULAS` | Enables formula inheritance in added rows from the last original row in the columns that are not included in the source data. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `JIRA`             | The script retrieves data from Jira. It should contain `SERVER` and `TOKEN`, optionally `MAX_RESULTS`. |
 | `KEY`              | The column containing keys is identified by the `KEY` reserved word with a value of `True`. It can be defined either globally or specifically for each sheet. |
@@ -107,8 +106,9 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `QUERY`            | Query definition for each sheet. It is specific to the input: Bugzilla queries are in YAML format, Jira queries are in JIRA Query Language (JQL), and queries for spreadsheets in Pandas query format.|
 | `SERVER`           | URL of the Jira server. It can only be a part of the `JIRA` section. |
 | `SHEET_COLUMNS`    | Definition of column names and their relation to data identifiers obtained from the input. It can be defined either globally or specifically for each sheet. |
-| `SHEETS`           | List of sheets that should be addressed in the target Google spreadsheet. |
+| `SHEETS`           | List of sheets that should be addressed in the target spreadsheet. |
 | `SOURCE`           | Defines the column name's relation to a data identifier obtained from the input. It is used when multiple reserved words belong to a specific column, such as `CONDITION`, `FROM`, `GET`, `KEY`, `LINK`, or `OPTIONAL`. |
+| `SPREADSHEET`      | Name of the target Excel spreadsheet. |
 | `SPREADSHEET_ID`   | ID of the target Google spreadsheet. |
 | `TABLE`            | Table/sheet name of the spreadsheet source (optional). Only one table is allowed. It is ignored if a table name is defined on the command line. |
 | `TOKEN`            | File name that contains the token to access Jira. |

@@ -13,6 +13,7 @@ from google.auth.exceptions import GoogleAuthError
 import pandas as pd
 
 import syncit.logger as log
+from syncit.tsheet import Tsheet
 
 CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
@@ -39,21 +40,14 @@ GOOGLE_CREDENTIALS_JSON_FILE = 'Google credentials JSON file: '
 WRONG_HEADER = 'wrong header in the sheet '
 WRONG_HEADER_OFFSET = 'header offset could be wrong in the sheet '
 
-class Gsheet:   # pylint: disable=too-many-instance-attributes
+class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
-    data = {}
-    rows = {}
-    remove_rows = {}
-    active_sheets = []
 
     def __init__(self, config):
         """ Acccess the spreadsheet and read data """
         self.spreadsheet_id = config.spreadsheet_id
         self.access_spreadsheet()
-        self.active_sheets = list(config.sheets.keys())
-        self.sheets_config = config.sheets
-        # Get relevant data sheets
-        self.get_spreadsheet()
+        Tsheet.__init__(self, config)
 
     def access_spreadsheet(self):
         """
@@ -109,47 +103,37 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
         for sheet in spreadsheet['sheets']:
             self.sheet_id[sheet['properties']['title']] = sheet['properties']['sheetId']
 
-    def get_sheet(self, sheet):
-        """ Read the sheet """
+    def get_sheet_data(self, sheet):
+        """ Read sheet data """
         log.debug(READ_GOOGLE_SHEET + "'" + sheet + "'")
+        self.data[sheet] = None
         try:
             raw_data = self.spreadsheet_access.values().get(
                     spreadsheetId=self.spreadsheet_id,
                     range=sheet, valueRenderOption='FORMULA').execute().get('values', [])
         except HttpError as error:
             log.error(error)
-            return None
+            return
         # Normalize raw_data to the same length of the header
         header_offset = self.sheets_config[sheet].header_offset
         try:
             header_length = len(raw_data[header_offset])
         except IndexError:
             log.error(WRONG_HEADER + "'" + sheet + "'")
-            return None
+            return
         for raw in range(header_offset+1, len(raw_data)):
             raw_length = len(raw_data[raw])
             if raw_length < header_length:
                 raw_data[raw].extend([''] * (header_length - raw_length))
         # Convert data to pandas format
         try:
-            data = pd.DataFrame(raw_data[header_offset+1:], columns=raw_data[header_offset])
+            self.data[sheet] = pd.DataFrame(raw_data[header_offset+1:], \
+                    columns=raw_data[header_offset])
         except ValueError as exception:
             log.error(exception)
             log.fatal_error(WRONG_HEADER_OFFSET + "'" + sheet + "'")
-        return data
 
-    def get_spreadsheet(self):
-        """ Read the active sheets """
-        remove_sheets = []
-        for sheet in self.active_sheets:
-            self.data[sheet] = self.get_sheet(sheet)
-            if self.data[sheet] is None:    # empty table without header
-                remove_sheets.append(sheet) # sign for removing from active sheets
-            else:
-                self.remove_rows[sheet] = []
-                self.rows[sheet] = len(self.data[sheet].index)
-        for sheet in remove_sheets:         # remove signed empty sheets from the next operations
-            self.active_sheets.remove(sheet)
+#        self.sheet_length[sheet] = len(self.data[sheet])   # not needed, it is requierd by ysheet
 
     def insert_rows(self, sheet, start_row, inserted_rows):
         """ Insert empty rows in the spreadsheet """
@@ -261,28 +245,3 @@ class Gsheet:   # pylint: disable=too-many-instance-attributes
                 sleep(delay)                        # delay in sec
                 delay = DELAY_MULTIPLIER * delay    # prolong the next delay
         return False                                # unsuccessful, this way should never happen
-
-    def update_data(self, enable_remove):
-        """ Update the target spreadsheet """
-        self.update_spreadsheet()
-        for sheet_name in self.active_sheets:
-            for column in self.sheets_config[sheet_name].columns:
-                if self.sheets_config[sheet_name].columns[column].link and \
-                        self.sheets_config[sheet_name].key == column:
-                    self.update_column_with_links(sheet_name, column, \
-                            self.sheets_config[sheet_name].columns[column].link)
-            if enable_remove and self.remove_rows[sheet_name]:
-                removals = {}
-                start_row = None
-                previous_row = None
-                for current_row in sorted(self.remove_rows[sheet_name]):
-                    if start_row is None or current_row != previous_row + 1:
-                        start_row = current_row
-                        previous_row = current_row
-                        removals[start_row] = 1
-                    else:
-                        previous_row = current_row
-                        removals[start_row] = removals[start_row] + 1
-                for row in sorted(removals, reverse=True):
-                    self.delete_rows(sheet_name, \
-                            row+self.sheets_config[sheet_name].header_offset+1, removals[row])
