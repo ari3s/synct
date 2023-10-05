@@ -42,7 +42,7 @@ class Args:                  #pylint: disable=too-few-public-methods
     remove = False
     noupdate = False
 
-def operation(mock_gsheet_class, add, default_columns, inherit_formulas):
+def operation(mock_tsheet_class, add, default_columns, inherit_formulas):
     """ Make the operation with data and return the final data """
 
     # Arguments set-up
@@ -50,24 +50,25 @@ def operation(mock_gsheet_class, add, default_columns, inherit_formulas):
     args.add = add
 
     # Prepare the mock Gsheet instance
-    google_data = pd.read_fwf(INITIAL_DATA, encoding='utf-8', dtype=str)
-    gsheet_instance = mock_gsheet_class.return_value
-    gsheet_instance.active_sheets = [SHEET]
-    gsheet_instance.data = {SHEET: google_data}
+    target_spreadsheet_data = pd.read_fwf(INITIAL_DATA, encoding='utf-8', dtype=str)
+    tsheet_instance = mock_tsheet_class.return_value
+    tsheet_instance.active_sheets = [SHEET]
+    tsheet_instance.data = {SHEET: target_spreadsheet_data}
 
     # Read source data
     source_data = pd.read_fwf(SOURCE_DATA, encoding='utf-8', dtype=str).to_dict(orient='records')
 
     # Configure tests parameters
     sheet_conf = configure(default_columns, inherit_formulas)
+    tsheet_instance.sheets_config = sheet_conf
 
     # Set up source data instance
-    source_data_instance = set_source_data_instance(source_data, sheet_conf, gsheet_instance)
+    source_data_instance = set_source_data_instance(source_data, sheet_conf, tsheet_instance)
 
     # Call the function under test
-    transform_data(source_data_instance, gsheet_instance, sheet_conf, args)
+    transform_data(source_data_instance, tsheet_instance, args)
 
-    return gsheet_instance.data[SHEET]
+    return tsheet_instance.data[SHEET]
 
 def configure(default_columns, inherit_formulas):
     """ Configure test parameters """
@@ -87,12 +88,12 @@ def configure(default_columns, inherit_formulas):
         sheet_conf[SHEET].columns[column].data = config_sheet_columns[column]
     return sheet_conf
 
-def set_source_data_instance(source_data, sheet_conf, gsheet_instance):
+def set_source_data_instance(source_data, sheet_conf, tsheet_instance):
     """ Set up source data instance """
     source_data_instance = {}
     if sheet_conf[SHEET].default_columns:
         source_data_instance[SHEET] = SourceData(source_data, \
-            sheet_conf[SHEET], gsheet_instance.data[SHEET])
+            sheet_conf[SHEET], tsheet_instance.data[SHEET])
     else:
         source_data_instance[SHEET] = SourceData(source_data, \
             sheet_conf[SHEET])
@@ -124,10 +125,10 @@ class TestTransformData(unittest.TestCase):
         ('addrows_defaultcolumns_inheritformulas', True, True, True, EXPECTED_DATA_7)
     ], name_func=custom_name_func)
 
-    @patch('syncit.gsheet.Gsheet', autospec=True)
+    @patch('syncit.tsheet.Tsheet', autospec=True)
     def test_transform_data(self, name, add, default_columns, inherit_formulas, expected_data, \
-            mock_gsheet_class):           #pylint: disable=too-many-arguments,unused-argument
+            mock_tsheet_class):           #pylint: disable=too-many-arguments,unused-argument
         """ Testing with fake data """
-        transformed_data = operation(mock_gsheet_class, add, default_columns, inherit_formulas)
+        transformed_data = operation(mock_tsheet_class, add, default_columns, inherit_formulas)
         expected_data = pd.read_fwf(expected_data, encoding='utf-8', dtype=str).fillna('')
         assert_frame_equal(transformed_data, expected_data, check_dtype=False)
