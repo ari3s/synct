@@ -24,6 +24,7 @@ python3-bugzilla
 python3-google-api-client
 python3-google-auth-oauthlib
 python3-jira
+python3-openpyxl
 python3-pandas
 python3-pyperclip
 python3-pyyaml
@@ -40,6 +41,7 @@ The following dependencies will be installed from PyPI by the above command:
 google-api-python-client
 google-auth-oauthlib
 jira
+openpyxl
 pandas
 pyperclip
 pyyaml

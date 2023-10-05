@@ -12,7 +12,7 @@ VERSION = (HERE / "VERSION").read_text()
 setup(
     name = 'syncit',
     version = VERSION,
-    description = 'Transform data from source to Google sheet',
+    description = 'Transform data from source to Google or Excel spreadsheet',
     long_description = README,
     long_description_content_type = 'text/markdown',
     url = 'https://github.com/ari3s/syncit',
@@ -28,6 +28,7 @@ setup(
         'jira',
         'google-api-python-client',
         'google-auth-oauthlib',
+        'openpyxl',
         'pandas',
         'pyperclip',
         'pyyaml',
