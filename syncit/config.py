@@ -1,6 +1,7 @@
 """ Config class and operations """
 from dataclasses import dataclass
 
+import pathlib
 import yaml
 
 import syncit.logger as log
@@ -59,6 +60,8 @@ SPREADSHEET_ = 'spreadsheet: '
 UNKNOWN_SHEET = 'uknown sheet: '
 
 # Error messages - config file:
+CONFIG_FILE = 'configuration file: '
+CONFIG_FILE_EXTENSION_IS_NOT_YAML = ': extension in not .yaml'
 CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
 
 # Error messages - Bugzilla:
@@ -108,10 +111,13 @@ class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attri
     def __init__(self, args):
         """ Get config data from the config file """
         log.debug(READ_CONFIG_FILE)
+        if pathlib.Path(args.config).suffix != '.yaml':
+            log.warning(CONFIG_FILE + args.config + CONFIG_FILE_EXTENSION_IS_NOT_YAML)
         try:
             with open(args.config, encoding='utf8') as config_file:
                 config_data = yaml.safe_load(config_file)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
+            log.error(CONFIG_FILE + args.config)
             log.fatal_error(exception)
         self.source = get_source(config_data, args)
         self.config_tsheet(config_data, args)
