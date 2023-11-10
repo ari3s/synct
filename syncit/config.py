@@ -7,6 +7,7 @@ import yaml
 import syncit.logger as log
 
 from syncit.bzilla import Bzilla
+from syncit.github import Github
 from syncit.jira import Jira
 from syncit.xsheet import Xsheet
 
@@ -15,9 +16,13 @@ API_KEY = 'API_KEY'
 DOMAIN = 'DOMAIN'
 URL = 'URL'
 
+GITHUB = 'GITHUB'
+SEARCH_API = 'SEARCH_API'
+TOKEN = 'TOKEN'
+
 JIRA = 'JIRA'
 SERVER = 'SERVER'
-TOKEN = 'TOKEN'
+#TOKEN = 'TOKEN'
 
 FILE = 'FILE'
 TYPE = 'TYPE'
@@ -68,6 +73,9 @@ CONFIG_FILE_MISSING_INPUT = 'input is missing in the config file'
 CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE = 'Bugzilla API key file is not set in the config file'
 CONFIG_FILE_MISSING_BUGZILLA_DOMAIN = 'Bugzilla domain is not set in the config file'
 CONFIG_FILE_MISSING_BUGZILLA_URL = 'Bugzilla URL is not set in the config file'
+
+# Error messages - GitHub:
+CONFIG_FILE_MISSING_GITHUB_URL = 'GitHub search API URL is not set in the config file'
 
 # Error messages - Jira:
 CONFIG_FILE_MISSING_JIRA_TOKEN = 'Jira access token is not set in the config file'
@@ -169,6 +177,9 @@ def get_source(config_data, args):
     if BUGZILLA in config_data:
         param = BUGZILLA
         source = access_bugzilla(config_data)
+    elif GITHUB in config_data:
+        param = GITHUB
+        source = access_github(config_data)
     elif JIRA in config_data:
         param = JIRA
         source = access_jira(config_data)
@@ -193,6 +204,12 @@ def access_bugzilla(config_data):
     bugzilla_api_key = get_config(config_data[BUGZILLA], API_KEY, \
             CONFIG_FILE_MISSING_BUGZILLA_API_KEY_FILE)
     return Bzilla(bugzilla_domain, bugzilla_url, bugzilla_api_key)
+
+def access_github(config_data):
+    """ Set up GitHub access """
+    github_url = get_config(config_data[GITHUB], SEARCH_API, CONFIG_FILE_MISSING_GITHUB_URL)
+    github_token = get_config_with_default(config_data[GITHUB], TOKEN, None)
+    return Github(github_url, github_token)
 
 def access_jira(config_data):
     """ Set up Jira access """
