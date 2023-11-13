@@ -216,6 +216,30 @@ SHEETS:
   QUERY: issues?q=state:open+state:closed+repo:ari3s/syncit
 ```
 
+### Jira YAML configuration file example
+```
+JIRA:
+  SERVER: https://issues.redhat.com/
+  TOKEN: "~/.jira/jira.token"
+  MAX_RESULTS: '1000'
+SPREADSHEET_ID: 1RuA01d-Asa6EKhZ9HJU7ykXk-wHjX3SIUsEgScS3ONM
+SHEETS:
+- NAME: rpm
+  QUERY: project = RHEL AND component = rpm AND issuetype = Bug
+SHEET_COLUMNS:
+  Issue key:
+    SOURCE: key
+    KEY: True
+    LINK: https://issues.redhat.com/browse/
+  Title: fields.summary
+  Assignee: fields.assignee
+  Priority: fields.priority
+  Fix Versions: fields.fixVersions
+  Affects Versions: fields.versions
+  Label: fields.labels
+  Issue status: fields.status
+```
+
 ## Authorized access
 ### Bugzilla
 Bugzilla access is handled using an API key, as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). An API key can be generated in the Preferences of the personal Bugzilla profile and stored in a file referred to in the YAML configuration file of the script.
