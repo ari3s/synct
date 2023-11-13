@@ -184,6 +184,38 @@ SHEETS:
           LINK: https://issues.redhat.com/browse/
 ```
 
+### GitHub YAML configuration file example
+```
+GITHUB:
+  SEARCH_API: "https://api.github.com/search/"
+  TOKEN: "~/.github/github_token"
+SPREADSHEET_ID: 1aEHCYma8orzDiDbkOnDifoFL2LuOy4b0aVAD1j7NTPg
+HEADER_OFFSET: 2
+SHEET_COLUMNS:
+  Issue Number: 
+    SOURCE: number
+    KEY: true
+    LINK: https://github.com/ari3s/syncit/issues/
+  Title: title
+  Assignee:
+    SOURCE:
+      FROM: assignees
+      GET:
+        - login: .*
+  Label:
+    SOURCE:
+      FROM: labels
+      GET:
+        - name: .*
+  Status: state
+  Created: created_at
+  Updated: updated_at
+  Closed: closed_at
+SHEETS:
+- NAME: Issues
+  QUERY: issues?q=state:open+state:closed+repo:ari3s/syncit
+```
+
 ## Authorized access
 ### Bugzilla
 Bugzilla access is handled using an API key, as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). An API key can be generated in the Preferences of the personal Bugzilla profile and stored in a file referred to in the YAML configuration file of the script.
