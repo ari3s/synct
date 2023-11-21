@@ -7,7 +7,7 @@ from json import loads
 
 import pandas as pd
 
-import syncit.logger as log
+import synct.logger as log
 
 # Debug messages:
 IDENTIFY_INPUT_FILE_TYPE = 'identify input file type'

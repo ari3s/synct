@@ -8,8 +8,8 @@ import pandas as pd
 import numpy as np
 from openpyxl import load_workbook
 
-import syncit.logger as log
-from syncit.tsheet import Tsheet
+import synct.logger as log
+from synct.tsheet import Tsheet
 
 # Debug messages:
 ACCESS_LOCAL_SPREADSHEET = 'access local target spreadsheet'

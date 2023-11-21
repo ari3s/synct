@@ -1,21 +1,21 @@
-Name:		syncit
+Name:		synct
 Version:	1.2.0
 Release:	%autorelease
 Summary:	Get data to Google sheets
 
 License:	GPL-3.0-or-later
-URL:		https://github.com/ari3s/syncit
-Source0:	https://raw.githubusercontent.com/ari3s/syncit/main/%{name}-%{version}.tar.gz
+URL:		https://github.com/ari3s/synct
+Source0:	https://raw.githubusercontent.com/ari3s/synct/main/%{name}-%{version}.tar.gz
 BuildArch:	noarch
 
 BuildRequires:	pyproject-rpm-macros
 BuildRequires:	python3-devel
 
 %description
-syncit reads data from the particular source and copies the data in Google
-spreadsheet as it is defined in the config file. The config file
+synct reads data from the particular source and copies the data in Google
+ior Excel spreadsheet as it is defined in the config file. The config file
 also contains relations between the source items and the columns
-in Google spreadsheet.
+in the target spreadsheet.
 
 %prep
 %autosetup -p1

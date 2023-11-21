@@ -4,13 +4,13 @@ from dataclasses import dataclass
 import pathlib
 import yaml
 
-import syncit.logger as log
+import synct.logger as log
 
-from syncit.bzilla import Bzilla
-from syncit.github import Github
-from syncit.gitlab import Gitlab
-from syncit.jira import Jira
-from syncit.xsheet import Xsheet
+from synct.bzilla import Bzilla
+from synct.github import Github
+from synct.gitlab import Gitlab
+from synct.jira import Jira
+from synct.xsheet import Xsheet
 
 BUGZILLA = 'BUGZILLA'
 API_KEY = 'API_KEY'
@@ -140,12 +140,12 @@ class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attri
     def config_tsheet(self, config_data, args):
         """ Configure target spreadsheet params """
         if SPREADSHEET in config_data:
-            self.module = 'syncit.ysheet'
+            self.module = 'synct.ysheet'
             self.target = 'Ysheet'
             self.spreadsheet = get_config(config_data, SPREADSHEET,
                                              CONFIG_FILE_MISSING_SPREADSHEET)
         else:
-            self.module = 'syncit.gsheet'
+            self.module = 'synct.gsheet'
             self.target = 'Gsheet'
             self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
                                              CONFIG_FILE_MISSING_SPREADSHEET)

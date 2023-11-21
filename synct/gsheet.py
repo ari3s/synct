@@ -12,8 +12,8 @@ from google.auth.exceptions import GoogleAuthError
 
 import pandas as pd
 
-import syncit.logger as log
-from syncit.tsheet import Tsheet
+import synct.logger as log
+from synct.tsheet import Tsheet
 
 CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'

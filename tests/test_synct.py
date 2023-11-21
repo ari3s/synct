@@ -1,5 +1,5 @@
 """ 
-Testing the syncit script functionality that covers
+Testing the synct script functionality that covers
 adding rows, default columns and inheriting formulas.
 """
 from pathlib import Path
@@ -13,9 +13,9 @@ from pandas.testing import assert_frame_equal
 
 import yaml
 
-from syncit.config import Column, Sheet
-from syncit.source import SourceData
-from syncit.syncit import transform_data
+from synct.config import Column, Sheet
+from synct.source import SourceData
+from synct.synct import transform_data
 
 TESTS_DIR = Path(__file__).parent
 DATA_DIR = TESTS_DIR / 'data'
@@ -111,7 +111,7 @@ def custom_name_func(testcase_func, param_num, param):
             f"{parameterized.to_safe_name('_'.join([str(param.args[0]), param_num]))}")
 
 class TestTransformData(unittest.TestCase):
-    """ Test the syncit script functionality """
+    """ Test the synct script functionality """
     @parameterized.expand([
         # Order of parameters:
         # test name, add rows, default columns, inherit formulas, expected data
@@ -125,7 +125,7 @@ class TestTransformData(unittest.TestCase):
         ('addrows_defaultcolumns_inheritformulas', True, True, True, EXPECTED_DATA_7)
     ], name_func=custom_name_func)
 
-    @patch('syncit.tsheet.Tsheet', autospec=True)
+    @patch('synct.tsheet.Tsheet', autospec=True)
     def test_transform_data(self, name, add, default_columns, inherit_formulas, expected_data, \
             mock_tsheet_class):           #pylint: disable=too-many-arguments,unused-argument
         """ Testing with fake data """

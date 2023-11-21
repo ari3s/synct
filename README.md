@@ -1,21 +1,21 @@
-# syncit
+# synct
 
 ## Description
-`syncit` is a Python script that retrieves data from a source and converts it to either Google or Excel spreadsheet as defined in the configuration file.
+`synct` (derived from *synchronize tables*) is a Python script that retrieves data from a source and converts it to either Google or Excel spreadsheet as defined in the configuration file.
 
 ## Installation
 
 ### Fedora
 The script can be installed on Fedora systems using `dnf` from the package stored in this project:
 ```
-sudo dnf install syncit-1.2.0-1.fc38.noarch.rpm
+sudo dnf install synct-1.2.0-1.fc38.noarch.rpm
 
 ```
 
 The script can also be installed from Fedora COPR using these commands:
 ```
-sudo dnf copr enable aries/syncit
-sudo dnf install syncit
+sudo dnf copr enable aries/synct
+sudo dnf install synct
 ```
 
 The following packages are required to be installed:
@@ -33,7 +33,7 @@ python3-pyyaml
 ### Linux and MacOS
 The script can be installed on Linux or MacOS systems using `pip`:
 ```
-python -m pip install syncit-1.2.0.tar.gz
+python -m pip install synct-1.2.0.tar.gz
 ```
 
 The following dependencies will be installed from PyPI by the above command:
@@ -50,12 +50,12 @@ python-bugzilla
 
 ## Usage
 ```
-syncit [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
+synct [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
 ```
 
 The script updates data rows in the target Google or Excel spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
 
-The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `syncit.yaml` file in the working directory.
+The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `synct.yaml` file in the working directory.
 
 The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
 
@@ -198,7 +198,7 @@ SHEET_COLUMNS:
   Issue Number: 
     SOURCE: number
     KEY: true
-    LINK: https://github.com/ari3s/syncit/issues/
+    LINK: https://github.com/ari3s/synct/issues/
   Title: title
   Assignee:
     SOURCE:
@@ -216,7 +216,7 @@ SHEET_COLUMNS:
   Closed: closed_at
 SHEETS:
 - NAME: Issues
-  QUERY: issues?q=state:open+state:closed+repo:ari3s/syncit
+  QUERY: issues?q=state:open+state:closed+repo:ari3s/synct
 ```
 
 ### GitLab YAML configuration file example

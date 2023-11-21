@@ -1,5 +1,5 @@
 """
-syncit
+synct
 
 The script gets data from the particular source and copies the data into
 the target spreadsheet as it is defined in the config file.
@@ -8,14 +8,14 @@ import argparse
 import importlib
 import pyperclip
 
-import syncit.logger as log
+import synct.logger as log
 
-from syncit.config import Config
-#from syncit.gsheet import Gsheet
-from syncit.source import SourceData
-from syncit.tsheet import update_target_row_data
+from synct.config import Config
+#from synct.gsheet import Gsheet
+from synct.source import SourceData
+from synct.tsheet import update_target_row_data
 
-CONFIG_FILE = 'syncit.yaml'
+CONFIG_FILE = 'synct.yaml'
 
 # Debug messages:
 SCRIPT_FINISHED = 'script finished'

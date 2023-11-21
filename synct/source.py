@@ -3,7 +3,7 @@ import builtins
 import re
 
 import pandas as pd
-import syncit.logger as log
+import synct.logger as log
 
 # Warning messages:
 MISSING_IN_THE_TARGET_SPREADSHEET = 'missing in the target spreadsheet'

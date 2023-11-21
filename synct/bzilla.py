@@ -5,7 +5,7 @@ import os
 
 from bugzilla import Bugzilla
 
-import syncit.logger as log
+import synct.logger as log
 
 API_KEY = 'api_key'
 

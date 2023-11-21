@@ -3,7 +3,7 @@ import os
 
 from jira import JIRA, JIRAError
 
-import syncit.logger as log
+import synct.logger as log
 
 # Debug messages:
 ACCESS_JIRA = 'access Jira'
