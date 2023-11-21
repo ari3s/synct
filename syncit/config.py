@@ -8,6 +8,7 @@ import syncit.logger as log
 
 from syncit.bzilla import Bzilla
 from syncit.github import Github
+from syncit.gitlab import Gitlab
 from syncit.jira import Jira
 from syncit.xsheet import Xsheet
 
@@ -17,6 +18,7 @@ DOMAIN = 'DOMAIN'
 URL = 'URL'
 
 GITHUB = 'GITHUB'
+GITLAB = 'GITLAB'
 SEARCH_API = 'SEARCH_API'
 TOKEN = 'TOKEN'
 
@@ -76,6 +78,10 @@ CONFIG_FILE_MISSING_BUGZILLA_URL = 'Bugzilla URL is not set in the config file'
 
 # Error messages - GitHub:
 CONFIG_FILE_MISSING_GITHUB_URL = 'GitHub search API URL is not set in the config file'
+
+# Error messages - GitLab:
+CONFIG_FILE_MISSING_GITLAB_TOKEN = 'GitLab access token is not set in the config file'
+CONFIG_FILE_MISSING_GITLAB_URL = 'GitLab search API URL is not set in the config file'
 
 # Error messages - Jira:
 CONFIG_FILE_MISSING_JIRA_TOKEN = 'Jira access token is not set in the config file'
@@ -180,6 +186,9 @@ def get_source(config_data, args):
     elif GITHUB in config_data:
         param = GITHUB
         source = access_github(config_data)
+    elif GITLAB in config_data:
+        param = GITLAB
+        source = access_gitlab(config_data)
     elif JIRA in config_data:
         param = JIRA
         source = access_jira(config_data)
@@ -210,6 +219,12 @@ def access_github(config_data):
     github_url = get_config(config_data[GITHUB], SEARCH_API, CONFIG_FILE_MISSING_GITHUB_URL)
     github_token = get_config_with_default(config_data[GITHUB], TOKEN, None)
     return Github(github_url, github_token)
+
+def access_gitlab(config_data):
+    """ Set up GitLab access """
+    gitlab_url = get_config(config_data[GITLAB], SEARCH_API, CONFIG_FILE_MISSING_GITLAB_URL)
+    gitlab_token = get_config(config_data[GITLAB], TOKEN, CONFIG_FILE_MISSING_GITLAB_TOKEN)
+    return Gitlab(gitlab_url, gitlab_token)
 
 def access_jira(config_data):
     """ Set up Jira access """
