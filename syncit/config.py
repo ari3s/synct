@@ -264,6 +264,8 @@ def get_sheet_config(config_data, spreadsheet):
         header_offset = int(config_data[HEADER_OFFSET])
     if DELIMITER in config_data:
         delimiter = config_data[DELIMITER]
+        for column in columns:          # pylint: disable=consider-using-dict-items
+            columns[column].delimiter = delimiter
     if DEFAULT_COLUMNS in config_data:
         default_columns = config_data[DEFAULT_COLUMNS]
     if INHERIT_FORMULAS in config_data:
@@ -280,13 +282,13 @@ def get_sheet_config(config_data, spreadsheet):
 
 def get_column_config(key, column, col, c_data, delimiter):
     """ Get column configuration """
+    col.delimiter = c_data[DELIMITER] \
+           if DELIMITER in c_data else delimiter
     if isinstance(c_data, dict):
         if KEY in c_data:
             if key:
                 log.error(CONFIG_FILE_MORE_KEYS)
             key = column
-        col.delimiter = c_data[DELIMITER] \
-               if DELIMITER in c_data else delimiter
         if LINK in c_data:
             col.link = c_data[LINK]
         if OPTIONAL in c_data:
@@ -301,9 +303,9 @@ def get_column_config(key, column, col, c_data, delimiter):
 
 def get_source_config(col, c_data):
     """ Get configuration of source data handling """
+    col.delimiter2 = c_data[SOURCE][DELIMITER] \
+            if DELIMITER in c_data[SOURCE] else col.delimiter
     if isinstance(c_data[SOURCE], dict):
-        col.delimiter2 = c_data[SOURCE][DELIMITER] \
-                if DELIMITER in c_data[SOURCE] else col.delimiter
         if FROM in c_data[SOURCE]:
             col.data = c_data[SOURCE][FROM]
         if GET in c_data[SOURCE]:
