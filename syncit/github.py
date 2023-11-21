@@ -5,19 +5,17 @@ import requests
 
 import syncit.logger as log
 
-INCOMPLETE_RESULTS = 'incomplete_results'
-TOTAL_COUNT = 'total_count='
-TOTAL_TIMEOUT = 10
+TIMEOUT = 10    # in seconds
 
 # Debug messages:
-ACCESS_GITHUB = 'access GitHub'
 GET_GITHUB_TOKEN = 'get GitHub token'
-
-#ACCESS_GITHUB_SUCCESSFUL = 'access GitHub - successful'
 GITHUB_QUERY = 'GitHub query: '
 
 # Error messages:
 GITHUB_QUERY_FAILED = 'GitHub query failed in the configuration file for the sheet '
+
+# Warning messages:
+INCOMPLETE_RESULTS = 'incomplete_results'
 
 class Github:    # pylint: disable=too-few-public-methods
     """ GitHub class """
@@ -35,7 +33,7 @@ class Github:    # pylint: disable=too-few-public-methods
                 log.warning(exception)
         self.url = url
         if token:
-            self.headers = {'Authorization': 'Token '+token}
+            self.headers = {'Authorization': 'Token ' + token}
         else:
             self.headers = None
 
@@ -43,14 +41,14 @@ class Github:    # pylint: disable=too-few-public-methods
         """ Query to GitHub """
         log.debug(GITHUB_QUERY + self.url + query)
         try:
-            response = requests.get(self.url+query, headers=self.headers, timeout=10) # 10 seconds
+            response = requests.get(self.url+query, headers=self.headers, timeout=TIMEOUT)
         except (AttributeError, TypeError) as exception:
-            log.error(GITHUB_QUERY_FAILED + sheet + ':\n' + str(query))
+            log.error(GITHUB_QUERY_FAILED + sheet + ':\n' + self.url + query)
             log.fatal_error(exception)
-        except requests.exceptions.Timeout as exception:
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exception:
+            log.error(GITHUB_QUERY_FAILED + sheet + ':\n' + self.url + query)
             log.fatal_error(exception)
         if not response.ok:
             log.warning(INCOMPLETE_RESULTS)
         resp = response.json()
-        log.debug(TOTAL_COUNT + str(resp['total_count']))
         return resp['items']
