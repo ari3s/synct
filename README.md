@@ -80,7 +80,9 @@ The configuration file contains reserved words written in capital letters, as we
 
 Bugzilla REST API documentation: [https://wiki.mozilla.org/Bugzilla:REST_API](https://wiki.mozilla.org/Bugzilla:REST_API)
 
-GiHub REST API documentation: [https://docs.github.com/en/rest](https://docs.github.com/en/rest)
+GitHub REST API documentation: [https://docs.github.com/en/rest](https://docs.github.com/en/rest)
+
+GitLab REST API documentation: [https://docs.gitlab.com/ee/api/rest/](https://docs.gitlab.com/ee/api/rest/)
 
 Jira REST API documentation: [https://developer.atlassian.com/server/jira/platform/rest-apis/](https://developer.atlassian.com/server/jira/platform/rest-apis/)
 
@@ -99,6 +101,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `FROM`             | Used with the `GET` (and optionally with the `CONDITION`) reserved word to address the higher level of structured identifiers. |
 | `GET`              | Used with the `FROM` (and optionally with the `CONDITION`) reserved word to address the list of lower level structured identifiers with explicit values, which can be regular expressions. |
 | `GITHUB`           | The script retrieves data from GitHub. It should contain `SEARCH_API` and `TOKEN`. |
+| `GITLAB`           | The script retrieves data from GitLab. It should contain `SEARCH_API` and `TOKEN`. |
 | `HEADER_OFFSET`    | The first row of the target spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0, which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. It can be defined either globally or specifically for each sheet. |
 | `INHERIT_FORMULAS` | Enables formula inheritance in added rows from the last original row in the columns that are not included in the source data. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `JIRA`             | The script retrieves data from Jira. It should contain `SERVER` and `TOKEN`, optionally `MAX_RESULTS`. |
@@ -108,8 +111,8 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `NAME`             | Defines the name of each sheet. |
 | `OFFSET`           | Header offset in the spreadsheet input file (optional). It is ignored if an offset is defined on the command line. |
 | `OPTIONAL`         | When the key with this specific column value is missing, it is not reported as a warning. The value can be a regular expression. |
-| `QUERY`            | Query definition for each sheet. It is specific to the input: Bugzilla queries are in YAML format, GitHub queries contain searching parameters of search API URL, Jira queries are in JIRA Query Language (JQL), and queries for spreadsheets are in Pandas query format. |
-| `SEARCH_API`       | URL of the GitHub search API. It can only be a part of the `GITHUB` section. |
+| `QUERY`            | Query definition for each sheet. It is specific to the input: Bugzilla queries are in YAML format, GitHub and GitLab queries contain searching parameters of search API URL, Jira queries are in JIRA Query Language (JQL), and queries for spreadsheets are in Pandas query format. |
+| `SEARCH_API`       | URL of the GitHub or GitLab search API. It can only be a part of either `GITHUB` or `GITLAB` section. |
 | `SERVER`           | URL of the Jira server. It can only be a part of the `JIRA` section. |
 | `SHEET_COLUMNS`    | Definition of column names and their relation to data identifiers obtained from the input. It can be defined either globally or specifically for each sheet. |
 | `SHEETS`           | List of sheets that should be addressed in the target spreadsheet. |
@@ -117,7 +120,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `SPREADSHEET`      | Name of the target Excel spreadsheet. |
 | `SPREADSHEET_ID`   | ID of the target Google spreadsheet. |
 | `TABLE`            | Table/sheet name of the spreadsheet source (optional). Only one table is allowed. It is ignored if a table name is defined on the command line. |
-| `TOKEN`            | File name that contains the token to access GitHub or Jira. |
+| `TOKEN`            | File name that contains the token to access GitHub, GitLab or Jira. |
 | `TYPE`             | Type of the local input file. The value must be `SPREADSHEET`. |
 | `URL`              | Bugzilla URL. |
 
@@ -216,6 +219,35 @@ SHEETS:
   QUERY: issues?q=state:open+state:closed+repo:ari3s/syncit
 ```
 
+### GitLab YAML configuration file example
+```
+GITLAB:
+  SEARCH_API: "https://gitlab.cee.redhat.com/api/v4/groups/"
+  TOKEN: "~/.gitlab/gitlab_token"
+SPREADSHEET_ID: 1jj2EI5Kum7Q2_DgJMKGAAP7bzCwOOX_WBOZ9AussSZo
+HEADER_OFFSET: 2
+SHEET_COLUMNS:
+  Issue Number:
+    SOURCE: iid
+    KEY: true
+    LINK: https://gitlab.cee.redhat.com/developer-guide/developer-guide/-/issues/
+  Title: title
+  Assignee:
+    SOURCE:
+      FROM: assignees
+      GET:
+        - name: .*
+  Label: labels
+  Status: state
+  Created: created_at
+  Updated: updated_at
+  Closed: closed_at
+SHEETS:
+- NAME: Issues
+  DELIMITER: ", "
+  QUERY: 9649/search?scope=issues&search=file
+```
+
 ### Jira YAML configuration file example
 ```
 JIRA:
@@ -245,7 +277,10 @@ SHEET_COLUMNS:
 Bugzilla access is handled using an API key, as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). An API key can be generated in the Preferences of the personal Bugzilla profile and stored in a file referred to in the YAML configuration file of the script.
 
 ### GitHub
-The script uses the REST API, which can use an API token generated according to the guidance here: [https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?](https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api?). The stored token file must be referred to in the YAML configuration file of the script.
+The script uses the REST API, which can use an API token generated according to the guidance here: [https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api](https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api). The stored token file must be referred to in the YAML configuration file of the script.
+
+### GitLab
+The script uses the REST API, which uses an API token generated according to the guidance here: [https://docs.gitlab.com/ee/api/rest/#authentication](https://docs.gitlab.com/ee/api/rest/#authentication). The stored token file must be referred to in the YAML configuration file of the script.
 
 ### Jira
 The script uses the REST API, which requires an API token. The token can be generated from your Jira account according to the guidance here: [https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html). The stored token file must be referred to in the YAML configuration file of the script.
