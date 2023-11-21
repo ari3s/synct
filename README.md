@@ -244,7 +244,7 @@ SHEET_COLUMNS:
   Closed: closed_at
 SHEETS:
 - NAME: Issues
-  DELIMITER: ", "
+  DELIMITER: "\n"
   QUERY: 9649/search?scope=issues&search=file
 ```
 
