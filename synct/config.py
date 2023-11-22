@@ -118,6 +118,7 @@ class Column:
     optional: str = None
     link: str = None
     delimiter: str = DEFAULT_DELIMITER
+    inherit_formulas: bool = INIT_INHERIT_FORMULAS
 
 class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """ Config parameters """
@@ -270,20 +271,25 @@ def get_sheet_config(config_data, spreadsheet):
         default_columns = config_data[DEFAULT_COLUMNS]
     if INHERIT_FORMULAS in config_data:
         inherit_formulas = config_data[INHERIT_FORMULAS]
+        for column in columns:          # pylint: disable=consider-using-dict-items
+            columns[column].inherit_formulas = inherit_formulas
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()
-            key = get_column_config(key, column, columns[column], data, delimiter)
+            key = get_column_config(key, column, columns[column], data, delimiter, inherit_formulas)
     if spreadsheet and not columns:
         delimiter = spreadsheet.delimiter
+        inherit_formulas = spreadsheet.inherit_formulas
         columns = spreadsheet.columns
         key = spreadsheet.key
     return Sheet(header_offset, delimiter, default_columns, inherit_formulas, columns, key)
 
-def get_column_config(key, column, col, c_data, delimiter):
+def get_column_config(key, column, col, c_data, delimiter, inherit_formulas):  #pylint: disable=too-many-arguments
     """ Get column configuration """
     col.delimiter = c_data[DELIMITER] \
            if DELIMITER in c_data else delimiter
+    col.inherit_formulas = c_data[INHERIT_FORMULAS] \
+            if INHERIT_FORMULAS in c_data else inherit_formulas
     if isinstance(c_data, dict):
         if KEY in c_data:
             if key:
@@ -316,6 +322,8 @@ def get_source_config(col, c_data):
             col.link = c_data[SOURCE][LINK]
         if OPTIONAL in c_data[SOURCE]:
             col.optional = c_data[SOURCE][OPTIONAL]
+        if INHERIT_FORMULAS in c_data[SOURCE]:
+            col.inherit_formulas = c_data[SOURCE][INHERIT_FORMULAS]
     else:
         col.data = c_data[SOURCE]
 

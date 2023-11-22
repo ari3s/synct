@@ -78,20 +78,23 @@ def get_formula(source, target, sheet_name):
     in the source columns, from the last row.
     """
     formula = {}
-    if target.sheets_config[sheet_name].inherit_formulas:
-        for column in target.data[sheet_name].columns:
-            if column not in list(target.sheets_config[sheet_name].columns.keys()) or \
-                    target.sheets_config[sheet_name].default_columns and \
-                    column not in source[sheet_name].data.columns:
-                try:
-                    cell = target.data[sheet_name].at[len(target.data[sheet_name])-1, column]
-                except KeyError:
-                    continue
-                try:
-                    if cell[0] == "=":
-                        formula[column] = cell
-                except (IndexError, TypeError):
-                    continue
+    for column in target.data[sheet_name].columns:
+        condition_1 = target.sheets_config[sheet_name].inherit_formulas and \
+                (column not in list(target.sheets_config[sheet_name].columns.keys()) or \
+                target.sheets_config[sheet_name].default_columns and \
+                column not in source[sheet_name].data.columns)
+        condition_2 = column in target.sheets_config[sheet_name].columns and \
+                target.sheets_config[sheet_name].columns[column].inherit_formulas
+        if condition_1 or condition_2:
+            try:
+                cell = target.data[sheet_name].at[len(target.data[sheet_name])-1, column]
+            except KeyError:
+                continue
+            try:
+                if cell[0] == "=":
+                    formula[column] = cell
+            except (IndexError, TypeError):
+                continue
     return formula
 
 def transform_data(source, target, args):

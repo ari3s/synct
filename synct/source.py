@@ -127,7 +127,7 @@ def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argum
                     value = eval('source_item.' + column)    #pylint: disable=eval-used
                 except (AttributeError, SyntaxError):
                     return None
-            except (AttributeError, TypeError):
+            except (AttributeError, SyntaxError, TypeError):
                 return None
     return value
 

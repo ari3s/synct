@@ -103,7 +103,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `GITHUB`           | The script retrieves data from GitHub. It should contain `SEARCH_API` and `TOKEN`. |
 | `GITLAB`           | The script retrieves data from GitLab. It should contain `SEARCH_API` and `TOKEN`. |
 | `HEADER_OFFSET`    | The first row of the target spreadsheet is expected to be the header. In this case, `HEADER_OFFSET` is 0, which is the default value. If the header is larger, `HEADER_OFFSET` defines the value. It can be defined either globally or specifically for each sheet. |
-| `INHERIT_FORMULAS` | Enables formula inheritance in added rows from the last original row in the columns that are not included in the source data. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
+| `INHERIT_FORMULAS` | Enables formula inheritance in added rows from the last original row in the columns that are not included in the source data. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet or column. This option is globally set to 'False' by default. |
 | `JIRA`             | The script retrieves data from Jira. It should contain `SERVER` and `TOKEN`, optionally `MAX_RESULTS`. |
 | `KEY`              | The column containing keys is identified by the `KEY` reserved word with a value of `True`. It can be defined either globally or specifically for each sheet. |
 | `LINK`             | Used in columns, it contains a URL that is used as a prefix for values. If the column is a key column, link format is used. |
