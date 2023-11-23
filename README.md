@@ -1,24 +1,28 @@
 # synct
 
 ## Description
+
 `synct` (derived from *synchronize tables*) is a Python script that retrieves data from a source and converts it to either Google or Excel spreadsheet as defined in the configuration file.
 
 ## Installation
 
 ### Fedora
+
 The script can be installed on Fedora systems using `dnf` from the package stored in this project:
+
 ```
 sudo dnf install synct-1.3.0-1.fc39.noarch.rpm
-
 ```
 
 The script can also be installed from Fedora COPR using these commands:
+
 ```
 sudo dnf copr enable aries/synct
 sudo dnf install synct
 ```
 
 The following packages are required to be installed:
+
 ```
 python3-bugzilla
 python3-google-api-client
@@ -31,12 +35,15 @@ python3-pyyaml
 ```
 
 ### Linux and MacOS
+
 The script can be installed on Linux or MacOS systems using `pip`:
+
 ```
 python -m pip install synct-1.3.0.tar.gz
 ```
 
 The following dependencies will be installed from PyPI by the above command:
+
 ```
 google-api-python-client
 google-auth-oauthlib
@@ -49,33 +56,53 @@ python-bugzilla
 ```
 
 ## Usage
+
 ```
-synct [-h] [-c CONFIG] [-s SHEET [SHEET ...]] [-a] [-r] [-f FILE] [-t TABLE] [-o OFFSET] [-v] [-q] [-n]
+synct [-h] [-c CONFIG] [-s SHEET [SHEET ...]] \
+      [-a] [-r] [-n] \
+      [-f FILE] [-t TABLE] [-o OFFSET] \
+      [-v] [-q]
 ```
 
 The script updates data rows in the target Google or Excel spreadsheet based on key values. If a key value is missing or placed inappropriately, it should be manually corrected. Then the script can update the related data. Missing key values are stored in the clipboard, separated by new lines, which allows for easy copying into the spreadsheet.
 
-The `-c CONFIG` parameter defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If the `-c` parameter is not set, the script uses the `synct.yaml` file in the working directory.
+### Options
 
-The `-s SHEET` parameter determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the parameter is not specified, all sheets listed in the configuration file will be processed.
+- `-h`, `--help`
+  - Show help with options list and their short description.
 
-The `-a` parameter enables the addition of missing rows to the spreadsheet. The added rows are placed at the end of the specific sheet.
+- `-c CONFIG`, `--config CONFIG`
+  - It defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If this option is not defined, the script uses the `synct.yaml` file in the working directory.
 
-The `-r` parameter enables the removal of rows in the spreadsheet. It is related to rows whose values are not retrieved from a source. For example, the script is configured to collect and update open bugs from Bugzilla. The `-r` parameter allows for the deletion of rows containing bugs that have not been retrieved, meaning those that have been closed. Without the parameter, such rows are not updated, and a warning is reported by the script.
+- `-s SHEET [SHEET ...]`, `--sheet SHEET [SHEET ...]`
+  - This option determines which sheets are processed. The selected sheets can be any sheets defined in the configuration YAML file. If the option is not specified, all sheets listed in the configuration file will be processed.
 
-The `-f FILE` parameter defines the source file name that can be either Excel or OpenDocument spreadsheet or CSV file. If the parameter occurs, the source file in the configuration file is ignored.
+- `-a`, `--add`
+  - It enables the addition of missing rows to the spreadsheet. The added rows are placed at the end of the specific sheet.
 
-The `-t TABLE` parameter defines the table/sheet in the source file that will be used. If the parameter occurs, a table name in the configuration file is ignored.
+- `-n`,` --noupdate`
+  - It disables updating the target spreadsheet.
 
-The `-o OFFSET` parameter defines the header offset in the source file. If the parameter occurs, an offset in the configuration file is ignored. Default value is 0.
+- `-r`, `--remove`
+  - It enables the removal of rows in the spreadsheet. It is related to rows whose values are not retrieved from a source. For example, the script is configured to collect and update open bugs from Bugzilla. The `-r` parameter allows for the deletion of rows containing bugs that have not been retrieved, meaning those that have been closed. Without this option, such rows are not updated, and a warning is reported by the script.
 
-By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include the info level, and `-vv` includes the debug level. The `-q` parameter reduces the logging to errors only.
+- `-f FILE`, `--file FILE`
+  - It defines the source file name that can be either Excel or OpenDocument spreadsheet or CSV file. If the parameter occurs, the source file in the configuration file is ignored.
 
-The `-n` parameter disables updating the target spreadsheet.
+- `-t TABLE`, `--table TABLE`
+  - This option defines the table/sheet in the source file that will be used. If the parameter occurs, a table name in the configuration file is ignored.
 
-The `-h` parameter displays a short help message.
+- `-o OFFSET`, `--offset OFFSET`
+  - The parameter defines the header offset in the source file. If the parameter occurs, an offset in the configuration file is ignored. Default value is 0.
+
+- `-v `, `--verbose`
+  - By default, the script reports warnings and errors. The `-v` parameter extends the logging level to include the info level. Repeating the option, it increases verbosity, so `-vv` includes the debug level.
+
+- `-q` , `--quiet`
+  - The option reduces the logging to errors only.
 
 ## Configuration file structure
+
 The configuration file contains reserved words written in capital letters, as well as additional data that defines the transition of input data to the target spreadsheet.
 
 Bugzilla REST API documentation: [https://wiki.mozilla.org/Bugzilla:REST_API](https://wiki.mozilla.org/Bugzilla:REST_API)
@@ -125,6 +152,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `URL`              | Bugzilla URL. |
 
 ### Bugzilla YAML configuration file example
+
 ```
 BUGZILLA:
   DOMAIN: bugzilla.redhat.com
@@ -188,6 +216,7 @@ SHEETS:
 ```
 
 ### GitHub YAML configuration file example
+
 ```
 GITHUB:
   SEARCH_API: "https://api.github.com/search/"
@@ -220,6 +249,7 @@ SHEETS:
 ```
 
 ### GitLab YAML configuration file example
+
 ```
 GITLAB:
   SEARCH_API: "https://gitlab.cee.redhat.com/api/v4/groups/"
@@ -249,6 +279,7 @@ SHEETS:
 ```
 
 ### Jira YAML configuration file example
+
 ```
 JIRA:
   SERVER: https://issues.redhat.com/
@@ -273,19 +304,25 @@ SHEET_COLUMNS:
 ```
 
 ## Authorized access
+
 ### Bugzilla
+
 Bugzilla access is handled using an API key, as described at [https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication). An API key can be generated in the Preferences of the personal Bugzilla profile and stored in a file referred to in the YAML configuration file of the script.
 
 ### GitHub
+
 The script uses the REST API, which can use an API token generated according to the guidance here: [https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api](https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api). The stored token file must be referred to in the YAML configuration file of the script.
 
 ### GitLab
+
 The script uses the REST API, which uses an API token generated according to the guidance here: [https://docs.gitlab.com/ee/api/rest/#authentication](https://docs.gitlab.com/ee/api/rest/#authentication). The stored token file must be referred to in the YAML configuration file of the script.
 
 ### Jira
+
 The script uses the REST API, which requires an API token. The token can be generated from your Jira account according to the guidance here: [https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html). The stored token file must be referred to in the YAML configuration file of the script.
 
 ### Google
+
 Since the script uses the Google Sheets API to read and write data, it requires authorized access using an OAuth JSON key file, which can be obtained according to the instructions here: [https://developers.google.com/workspace/guides/create-credentials#service-account](https://developers.google.com/workspace/guides/create-credentials#service-account).
 
 The following *Enabled APIs & Services* should be selected: *Cloud Identity-Aware Proxy API*, *Google Sheets API*, and *Token Service API*. Sensitive scopes set through the *OAuth consent screen* should allow the following option:
@@ -297,4 +334,5 @@ The following *Enabled APIs & Services* should be selected: *Cloud Identity-Awar
 The OAuth client ID type set in the *Credentials* menu should be *Desktop*. The OAuth client JSON file with service account credentials should be downloaded and stored locally. An easy way to provide service account credentials is by setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the JSON file's name. The script will use the value of this variable to find the service account key JSON file.
 
 ## Support
-Issues can be raised using the standard method in this GitHub project.
+
+Bugs can be reported or new feature requests can be raised in the [Issues](https://github.com/ari3s/synct/issues) section.

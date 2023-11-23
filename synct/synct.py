@@ -41,6 +41,8 @@ def get_cli_parameters():
             help='enable to add missing items into the target spreadsheet')
     parser.add_argument('-r', '--remove', action="store_true",
             help='enable removing items in the target spreadsheet')
+    parser.add_argument('-n', '--noupdate', action="store_true",
+            help='disable target spreadsheet update')
     parser.add_argument('-f', '--file', type=str, default=None,
             help='file name of data source')
     parser.add_argument('-t', '--table', type=str, default=None,
@@ -51,8 +53,6 @@ def get_cli_parameters():
             default=0, help='verbose output (repeat for increased verbosity)')
     parser.add_argument('-q', '--quiet', action='store_const', const=-1,
             default=0, dest='verbosity', help='quiet output (show errors only)')
-    parser.add_argument('-n', '--noupdate', action="store_true",
-            help='disable target spreadsheet update')
     args = parser.parse_args()
     log.setup(args.verbosity)
     return args
