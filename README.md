@@ -58,7 +58,8 @@ python-bugzilla
 ## Usage
 
 ```
-synct [-h] [-c CONFIG] [-s SHEET [SHEET ...]] \
+synct [-h] [--version] \
+      [-c CONFIG] [-s SHEET [SHEET ...]] \
       [-a] [-r] [-n] \
       [-f FILE] [-t TABLE] [-o OFFSET] \
       [-v] [-q]
@@ -69,7 +70,10 @@ The script updates data rows in the target Google or Excel spreadsheet based on 
 ### Options
 
 - `-h`, `--help`
-  - Show help with options list and their short description.
+  - Show help with options list and their short description, and exit without any action.
+
+- `--version`
+  - Display the script name and version, and exit without any action.
 
 - `-c CONFIG`, `--config CONFIG`
   - It defines the name of the YAML configuration file containing the input identification with access attributes, a reference to the target spreadsheet with sheet names and related queries, column names with their related items, and additional parameters defining the content of the spreadsheet. If this option is not defined, the script uses the `synct.yaml` file in the working directory.

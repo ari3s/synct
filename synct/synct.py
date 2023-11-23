@@ -15,7 +15,13 @@ from synct.config import Config
 from synct.source import SourceData
 from synct.tsheet import update_target_row_data
 
-CONFIG_FILE = 'synct.yaml'
+PROG = 'synct'
+VERSION = "1.3.0"               # Keep quotation marks here
+DESCRIPTION = 'Retrieve data from a source and convert it to either '\
+        'Google or Excel spreadsheet as defined in the configuration file.'
+EPILOG = 'More details at https://github.com/ari3s/synct'
+
+CONFIG_FILE = PROG + '.yaml'
 
 # Debug messages:
 SCRIPT_FINISHED = 'script finished'
@@ -32,7 +38,8 @@ UNKNOWN_KEY = 'unknown key in the sheet '
 
 def get_cli_parameters():
     """ Get parameters from CLI and check that they are correct """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog=PROG, description=DESCRIPTION, epilog=EPILOG)
+    parser.add_argument('--version', action='version', version='%(prog)s '+VERSION)
     parser.add_argument('-c', '--config', type=str, default=CONFIG_FILE,
             help='config file (default: '+CONFIG_FILE+')')
     parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
