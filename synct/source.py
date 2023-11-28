@@ -12,7 +12,7 @@ SOURCE_DATA_KEY = 'SOURCE DATA: key = '
 # Warning messages:
 MISSING_IN_THE_TARGET_SPREADSHEET = 'missing in the target spreadsheet'
 
-class SourceData:   # pylint: disable=too-few-public-methods
+class SourceData:
     """ Source data class """
     data = {}
     key_dict = {}
@@ -26,7 +26,6 @@ class SourceData:   # pylint: disable=too-few-public-methods
         columns_list = create_columns_list(sheet_config, target_sheet)
         index = 0
         for source_item in source_data:
-            raw = {}
             key_value = get_value(source_item, sheet_config, sheet_config.key)
             if key_value is None:
                 continue
@@ -38,28 +37,11 @@ class SourceData:   # pylint: disable=too-few-public-methods
                 except TypeError:
                     continue
             display_source_record(source_item, key_value, index)
-            for column in columns_list:
-                raw[column] = cell_init_value(target_sheet, column, sheet_config, key_value)
-                config_column = column in sheet_config.columns
-                value = get_value(source_item, sheet_config, column)
-                if value is None:
-                    continue
-                if not isinstance(value, str):
-                    try:
-                        iter(value)
-                    except TypeError:
-                        pass
-                if config_column:
-                    raw[column] = evaluate(value, sheet_config.columns[column], source_item, \
-                            column == sheet_config.key)
-                elif isinstance(value, list):
-                    raw[column] = sheet_config.delimiter.join(map(str, value))
-                else:
-                    raw[column] = str(value)
+            row = get_columns(source_item, sheet_config, target_sheet, key_value, columns_list)
             self.key_dict[key_value] = index
             index = index + 1
             self.used_key[key_value] = False
-            converted_data.append(list(raw.values()))
+            converted_data.append(list(row.values()))
         self.data = pd.DataFrame(converted_data[0:], index=range(0, len(converted_data)), \
                                  columns=columns_list)
 
@@ -119,7 +101,7 @@ def create_columns_list(sheet_config, target_sheet):
 
 def display_source_record(source_item, key_value, index):
     """ Display the first source data structured record in the debug mode """
-    if index > 0:
+    if index > 0 or not log.debug_level():
         return
     if isinstance(source_item, (float, int, str, list, dict, tuple, set)):
         sd_string = pformat(source_item)
@@ -129,7 +111,30 @@ def display_source_record(source_item, key_value, index):
                 sd_string = pformat(getattr(source_item, attr))
     log.debug(SOURCE_DATA_KEY + key_value + '\n' + sd_string)
 
-def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argument
+def get_columns(source_item, sheet_config, target_sheet, key_value, columns_list):
+    """ Get column values in the row """
+    row = {}
+    for column in columns_list:
+        row[column] = cell_init_value(target_sheet, column, sheet_config, key_value)
+        config_column = column in sheet_config.columns
+        value = get_value(source_item, sheet_config, column)
+        if value is None:
+            continue
+        if not isinstance(value, str):
+            try:
+                iter(value)
+            except TypeError:
+                pass
+        if config_column:
+            row[column] = evaluate(value, sheet_config.columns[column], source_item, \
+                    column == sheet_config.key)
+        elif isinstance(value, list):
+            row[column] = sheet_config.delimiter.join(map(str, value))
+        else:
+            row[column] = str(value)
+    return row
+
+def get_value(source_item, sheet_config, column):
     """ Get value from source """
     try:
         value = source_item[sheet_config.columns[column].data]

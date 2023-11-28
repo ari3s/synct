@@ -52,3 +52,7 @@ def info(info_message):
 def debug(debug_message):
     """ Report the warning """
     log.debug(debug_message)
+
+def debug_level():
+    """ Check debug level """
+    return logging.getLevelName(logging.root.level) == 'debug'
