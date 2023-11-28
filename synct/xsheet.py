@@ -27,7 +27,7 @@ IGNORED_TABLE = 'table selection is ignored, not supported in CSV files'
 # Input spreadsheet engines per file name extension
 input_engines = {'.csv': 'python', '.ods': 'odf', '.xls': 'xlrd', '.xlsx': 'openpyxl'}
 
-class Xsheet:   # pylint: disable=too-few-public-methods
+class Xsheet:
     """ Input spreadsheet file class """
 
     def __init__(self, args, name, table, offset):
@@ -35,38 +35,8 @@ class Xsheet:   # pylint: disable=too-few-public-methods
         Idetify data format of the the local file
         and read data that will be selected later on.
         """
-        log.debug(IDENTIFY_INPUT_FILE_TYPE)
-        file_name = name if args.file is None else args.file
-        try:
-            engine = input_engines[pathlib.Path(file_name).suffix]
-            log.debug(engine)
-        except KeyError:
-            log.fatal_error(UNKNOWN_INPUT_FILE_TYPE)
-        except TypeError:
-            log.fatal_error(MISSING_OR_INCORRECT_INPUT_FILE)
-
-        log.debug(READ_INPUT_FILE + file_name)
-        table_name = table if args.table is None else args.table
-        offset_value = offset if args.offset is None else args.offset
-        try:
-            # suppress warnig: Workbook contains no default style, apply openpyxl's default
-            with warnings.catch_warnings(record=True):
-                warnings.simplefilter('always')
-                if pathlib.Path(file_name).suffix == '.csv':
-                    if table_name:
-                        log.warning(IGNORED_TABLE)
-                    self.data = pd.read_csv(file_name, engine=engine,
-                                            sep=None,   # python engine can detect the separator
-                                            skiprows=offset_value, keep_default_na=False)
-                elif table_name:
-                    self.data = pd.read_excel(file_name, engine=engine, sheet_name=table_name,
-                                              skiprows=offset_value, keep_default_na=False)
-                else:
-                    self.data = pd.read_excel(file_name, engine=engine,
-                                              skiprows=offset_value, keep_default_na=False)
-        except (OSError, ValueError) as exception:
-            log.error(exception)
-            log.fatal_error(READING_INPUT_FILE_FAILED)
+        self.get_input(args, name)
+        self.read_input_file(args, table, offset)
         for column in self.data:
             if  self.data[column].dtypes == 'datetime64[ns]':     # convert date to string
                 self.data[column] = pd.to_datetime(self.data[column]).astype(str)
@@ -84,3 +54,41 @@ class Xsheet:   # pylint: disable=too-few-public-methods
             log.error(WRONG_OFFSET_INPUT_FILE)
             log.fatal_error(exception)
         return data
+
+    def get_input(self, args, name):
+        """ Indetify input file type """
+        log.debug(IDENTIFY_INPUT_FILE_TYPE)
+        self.file_name = name if args.file is None else args.file
+        try:
+            self.engine = input_engines[pathlib.Path(self.file_name).suffix]
+            log.debug(self.engine)
+        except KeyError:
+            log.fatal_error(UNKNOWN_INPUT_FILE_TYPE)
+        except TypeError:
+            log.fatal_error(MISSING_OR_INCORRECT_INPUT_FILE)
+
+    def read_input_file(self, args, table, offset):
+        """ Read input file """
+        log.debug(READ_INPUT_FILE + self.file_name)
+        table_name = table if args.table is None else args.table
+        offset_value = offset if args.offset is None else args.offset
+        try:
+            # suppress warnig: Workbook contains no default style, apply openpyxl's default
+            with warnings.catch_warnings(record=True):
+                warnings.simplefilter('always')
+                if pathlib.Path(self.file_name).suffix == '.csv':
+                    if table_name:
+                        log.warning(IGNORED_TABLE)
+                    self.data = pd.read_csv(self.file_name, engine=self.engine,
+                                            sep=None,   # python engine can detect the separator
+                                            skiprows=offset_value, keep_default_na=False)
+                elif table_name:
+                    self.data = pd.read_excel(self.file_name, engine=self.engine,
+                                              sheet_name=table_name, skiprows=offset_value,
+                                              keep_default_na=False)
+                else:
+                    self.data = pd.read_excel(self.file_name, engine=self.engine,
+                                              skiprows=offset_value, keep_default_na=False)
+        except (OSError, ValueError) as exception:
+            log.error(exception)
+            log.fatal_error(READING_INPUT_FILE_FAILED)
