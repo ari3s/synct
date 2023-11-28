@@ -17,25 +17,13 @@ GITHUB_QUERY_FAILED = 'GitHub query failed in the configuration file for the she
 # Warning messages:
 INCOMPLETE_RESULTS = 'incomplete_results'
 
-class Github:    # pylint: disable=too-few-public-methods
+class Github:
     """ GitHub class """
 
     def __init__(self, url, token_file_name):
         """ Get GitHub access using API key """
-        token = None
-        if token_file_name:
-            log.debug(GET_GITHUB_TOKEN)
-            try:
-                with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
-                    token = token_file.read().rstrip('\n')
-                    token_file.close()
-            except OSError as exception:
-                log.warning(exception)
+        self.get_token(token_file_name)
         self.url = url
-        if token:
-            self.headers = {'Authorization': 'Token ' + token}
-        else:
-            self.headers = None
 
     def data_query(self, sheet, query):
         """ Query to GitHub """
@@ -52,3 +40,19 @@ class Github:    # pylint: disable=too-few-public-methods
             log.warning(INCOMPLETE_RESULTS)
         resp = response.json()
         return resp['items']
+
+    def get_token(self, token_file_name):
+        """ Get token from the file """
+        token = None
+        if token_file_name:
+            log.debug(GET_GITHUB_TOKEN)
+            try:
+                with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
+                    token = token_file.read().rstrip('\n')
+                    token_file.close()
+            except OSError as exception:
+                log.warning(exception)
+        if token:
+            self.headers = {'Authorization': 'Token ' + token}
+        else:
+            self.headers = None
