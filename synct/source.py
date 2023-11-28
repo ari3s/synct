@@ -2,8 +2,12 @@
 import builtins
 import re
 
+from pprint import pformat
+
 import pandas as pd
 import synct.logger as log
+
+SOURCE_DATA_KEY = 'SOURCE DATA: key = '
 
 # Warning messages:
 MISSING_IN_THE_TARGET_SPREADSHEET = 'missing in the target spreadsheet'
@@ -33,6 +37,7 @@ class SourceData:   # pylint: disable=too-few-public-methods
                         continue
                 except TypeError:
                     continue
+            display_source_record(source_item, key_value, index)
             for column in columns_list:
                 raw[column] = cell_init_value(target_sheet, column, sheet_config, key_value)
                 config_column = column in sheet_config.columns
@@ -111,6 +116,18 @@ def create_columns_list(sheet_config, target_sheet):
             if column not in columns_list:
                 columns_list.append(column)
     return columns_list
+
+def display_source_record(source_item, key_value, index):
+    """ Display the first source data structured record in the debug mode """
+    if index > 0:
+        return
+    if isinstance(source_item, (float, int, str, list, dict, tuple, set)):
+        sd_string = pformat(source_item)
+    else:
+        for attr in dir(source_item):
+            if attr == '__dict__':
+                sd_string = pformat(getattr(source_item, attr))
+    log.debug(SOURCE_DATA_KEY + key_value + '\n' + sd_string)
 
 def get_value(source_item, sheet_config, column):  #pylint: disable=unused-argument
     """ Get value from source """
