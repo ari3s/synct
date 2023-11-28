@@ -88,7 +88,7 @@ class Ysheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         # It is needed for the delete_rows workaround:
         self.sheet_length[sheet] = len(self.data[sheet])
 
-    def insert_rows(self, sheet, start_row, inserted_rows):
+    def insert_rows(self, sheet, start_row, inserted_rows):     #pylint: disable=unused-argument
         """ Insert empty rows in the spreadsheet """
         log.debug(ADD_ROWS_LOCAL_SHEET + "'" + sheet + "'")
 
@@ -136,7 +136,7 @@ class Ysheet(Tsheet):   # pylint: disable=too-many-instance-attributes
             if len(self.data[sheet].index) > self.rows[sheet]:
                 self.insert_rows(sheet, \
                         self.sheets_config[sheet].header_offset+self.rows[sheet]+2, \
-                        len(self.data[sheet])-self.rows[sheet])
+                        len(self.data[sheet])-self.rows[sheet])     #pylint: disable=duplicate-code
             log.debug(UPDATE_LOCAL_SHEET + "'" + sheet + "'")
             for index, row in self.data[sheet].iterrows():
                 for col_index, value in enumerate(row, start=1):
