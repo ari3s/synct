@@ -14,17 +14,12 @@ JIRA_QUERY = 'Jira query: '
 JIRA_AUTH_FAILED = 'Jira authorization failed'
 JIRA_QUERY_FAILED = 'Jira query failed in the configuration file for the sheet '
 
-class Jira:   # pylint: disable=too-few-public-methods
+class Jira:
     """ Jira class """
 
     def __init__(self, url, token_file_name, max_results):
         """ Access Jira """
-        log.debug(GET_JIRA_TOKEN)
-        try:
-            with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
-                token = token_file.read().rstrip('\n')
-        except OSError as exception:
-            log.error(exception)
+        token = self.get_token(token_file_name)
         try:
             self.access = JIRA(options={'server': url}, token_auth=token)
             log.debug(ACCESS_JIRA)
@@ -42,3 +37,13 @@ class Jira:   # pylint: disable=too-few-public-methods
             log.error(JIRA_QUERY_FAILED + sheet + ':\n' + query)
             log.fatal_error(exception)
         return data
+
+    def get_token(self, token_file_name):
+        """ Get token from the file """
+        log.debug(GET_JIRA_TOKEN)
+        try:
+            with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
+                token = token_file.read().rstrip('\n')
+        except OSError as exception:
+            log.error(exception)
+        return token
