@@ -24,7 +24,6 @@ TOKEN = 'TOKEN'
 
 JIRA = 'JIRA'
 SERVER = 'SERVER'
-#TOKEN = 'TOKEN'
 
 FILE = 'FILE'
 TYPE = 'TYPE'
@@ -120,7 +119,7 @@ class Column:
     delimiter: str = DEFAULT_DELIMITER
     inherit_formulas: bool = INIT_INHERIT_FORMULAS
 
-class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attributes
+class Config:   # pylint: disable=too-many-instance-attributes
     """ Config parameters """
 
     def __init__(self, args):
@@ -135,24 +134,12 @@ class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attri
             log.error(CONFIG_FILE + args.config)
             log.fatal_error(exception)
         self.source = get_source(config_data, args)
+        self.config_tsheet_type(config_data)
         self.config_tsheet(config_data, args)
         log.check_error()
 
     def config_tsheet(self, config_data, args):
         """ Configure target spreadsheet params """
-        if SPREADSHEET in config_data:
-            self.module = 'synct.ysheet'
-            self.target = 'Ysheet'
-            self.spreadsheet = get_config(config_data, SPREADSHEET,
-                                             CONFIG_FILE_MISSING_SPREADSHEET)
-        else:
-            self.module = 'synct.gsheet'
-            self.target = 'Gsheet'
-            self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
-                                             CONFIG_FILE_MISSING_SPREADSHEET)
-            if not isinstance(self.spreadsheet_id, str):
-                log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
-
         spreadsheet = get_sheet_config(config_data, None)
         log.debug(SPREADSHEET_ + str(spreadsheet))
         if SHEETS in config_data:
@@ -177,6 +164,21 @@ class Config:   # pylint: disable=too-few-public-methods,too-many-instance-attri
             for item in args.sheet:
                 if item not in sheets_list:
                     log.warning(UNKNOWN_SHEET + item)
+
+    def config_tsheet_type(self, config_data):
+        """ Configure target spreadsheet type """
+        if SPREADSHEET in config_data:
+            self.module = 'synct.ysheet'
+            self.target = 'Ysheet'
+            self.spreadsheet = get_config(config_data, SPREADSHEET,
+                                             CONFIG_FILE_MISSING_SPREADSHEET)
+        else:
+            self.module = 'synct.gsheet'
+            self.target = 'Gsheet'
+            self.spreadsheet_id = get_config(config_data, SPREADSHEET_ID,
+                                             CONFIG_FILE_MISSING_SPREADSHEET)
+            if not isinstance(self.spreadsheet_id, str):
+                log.fatal_error(CONFIG_FILE_WRONG_SPREADSHEET)
 
 def get_source(config_data, args):
     """ Get input presented in the config file """
@@ -276,7 +278,10 @@ def get_sheet_config(config_data, spreadsheet):
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()
-            key = get_column_config(key, column, columns[column], data, delimiter, inherit_formulas)
+            columns[column].delimiter = get_column_param(data, DELIMITER, delimiter)
+            columns[column].inherit_formulas = get_column_param( \
+                    data, INHERIT_FORMULAS, inherit_formulas)
+            key = get_column_config(key, column, columns[column], data)
     if spreadsheet and not columns:
         delimiter = spreadsheet.delimiter
         inherit_formulas = spreadsheet.inherit_formulas
@@ -284,12 +289,12 @@ def get_sheet_config(config_data, spreadsheet):
         key = spreadsheet.key
     return Sheet(header_offset, delimiter, default_columns, inherit_formulas, columns, key)
 
-def get_column_config(key, column, col, c_data, delimiter, inherit_formulas):  #pylint: disable=too-many-arguments
+def get_column_param(c_data, param, default):
+    """ Get column parameter that can have also a default value """
+    return c_data[param] if param in c_data else default
+
+def get_column_config(key, column, col, c_data):
     """ Get column configuration """
-    col.delimiter = c_data[DELIMITER] \
-           if DELIMITER in c_data else delimiter
-    col.inherit_formulas = c_data[INHERIT_FORMULAS] \
-            if INHERIT_FORMULAS in c_data else inherit_formulas
     if isinstance(c_data, dict):
         if KEY in c_data:
             if key:
@@ -309,8 +314,7 @@ def get_column_config(key, column, col, c_data, delimiter, inherit_formulas):  #
 
 def get_source_config(col, c_data):
     """ Get configuration of source data handling """
-    col.delimiter2 = c_data[SOURCE][DELIMITER] \
-            if DELIMITER in c_data[SOURCE] else col.delimiter
+    col.delimiter2 = get_column_param(c_data[SOURCE], DELIMITER, col.delimiter)
     if isinstance(c_data[SOURCE], dict):
         if FROM in c_data[SOURCE]:
             col.data = c_data[SOURCE][FROM]
