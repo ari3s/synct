@@ -1,0 +1,8 @@
+jira
+google-api-python-client
+google-auth-oauthlib
+openpyxl
+pandas
+pyperclip
+pyyaml
+python-bugzilla

@@ -7,6 +7,7 @@ from setuptools import setup, find_packages
 HERE = pathlib.Path(__file__).parent
 
 README = (HERE / "README.md").read_text()
+REQUIREMENTS = (HERE / "requirements.txt").read_text().splitlines()
 VERSION = (HERE / "VERSION").read_text()
 
 setup(
@@ -24,14 +25,5 @@ setup(
         'console_scripts': ['synct = synct.synct:main']
     },
     packages = find_packages(),
-    install_requires = [
-        'jira',
-        'google-api-python-client',
-        'google-auth-oauthlib',
-        'openpyxl',
-        'pandas',
-        'pyperclip',
-        'pyyaml',
-        'python-bugzilla'
-        ]
+    install_requires = REQUIREMENTS
     )
