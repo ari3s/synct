@@ -1,5 +1,5 @@
 Name:		synct
-Version:	1.4.0
+Version:	1.5.0
 Release:	%autorelease
 Summary:	Get data to Google sheets
 
