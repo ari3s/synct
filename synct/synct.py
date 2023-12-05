@@ -16,7 +16,7 @@ from synct.source import SourceData
 from synct.tsheet import update_target_row_data
 
 PROG = 'synct'
-VERSION = "1.5.1"               # Keep quotation marks here
+VERSION = "1.5.2"               # Keep quotation marks here
 DESCRIPTION = 'Retrieve data from a source and convert it to either '\
         'Google or Excel spreadsheet as defined in the configuration file.'
 EPILOG = 'More details at https://github.com/ari3s/synct'
