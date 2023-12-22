@@ -1,5 +1,5 @@
 Name:		synct
-Version:	1.5.2
+Version:	1.5.3
 Release:	%autorelease
 Summary:	Get data to Google or Excel sheets
 
