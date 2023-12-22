@@ -1,0 +1,23 @@
+#
+# syncit config file for data update from Jira in Google spreadsheet
+#
+JIRA:
+  SERVER: https://issues.redhat.com/
+  TOKEN: "~/.jira/jira.token"
+  MAX_RESULTS: '1000'
+SPREADSHEET_ID: 1RuA01d-Asa6EKhZ9HJU7ykXk-wHjX3SIUsEgScS3ONM
+SHEETS:
+- NAME: rpm
+  QUERY: project = RHEL AND component = rpm AND issuetype = Bug
+SHEET_COLUMNS:
+  Issue key:
+    SOURCE: key
+    KEY: True
+    LINK: https://issues.redhat.com/browse/
+  Title: fields.summary
+  Assignee: fields.assignee
+  Priority: fields.priority
+  Fix Versions: fields.fixVersions
+  Affects Versions: fields.versions
+  Label: fields.labels
+  Issue status: fields.status

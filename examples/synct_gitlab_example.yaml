@@ -1,0 +1,28 @@
+#
+# syncit config file for data update from GitLab in Google spreadsheet
+#
+GITLAB:
+  SEARCH_API: "https://gitlab.cee.redhat.com/api/v4/groups/"
+  TOKEN: "~/.gitlab/gitlab_token"
+SPREADSHEET_ID: 1jj2EI5Kum7Q2_DgJMKGAAP7bzCwOOX_WBOZ9AussSZo
+HEADER_OFFSET: 2
+SHEET_COLUMNS:
+  Issue Number: 
+    SOURCE: iid 
+    KEY: true
+    LINK: https://gitlab.cee.redhat.com/developer-guide/developer-guide/-/issues/
+  Title: title
+  Assignee:
+    SOURCE:
+      FROM: assignees
+      GET:
+        - name: .*
+  Label: labels
+  Status: state
+  Created: created_at
+  Updated: updated_at
+  Closed: closed_at
+SHEETS:
+- NAME: Issues
+  DELIMITER: "\n"
+  QUERY: 9649/search?scope=issues&search=file

@@ -1,3 +1,6 @@
+#
+# synct config file for data update from Bugzilla in Google spreadsheet
+#
 BUGZILLA:
   DOMAIN: bugzilla.redhat.com
   URL: https://bugzilla.redhat.com/xmlrpc.cgi
