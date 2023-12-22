@@ -1,7 +1,7 @@
 Name:		synct
 Version:	1.5.2
 Release:	%autorelease
-Summary:	Get data to Google sheets
+Summary:	Get data to Google or Excel sheets
 
 License:	GPL-3.0-or-later
 URL:		https://github.com/ari3s/synct
@@ -13,7 +13,7 @@ BuildRequires:	python3-devel
 
 %description
 synct reads data from the particular source and copies the data in Google
-ior Excel spreadsheet as it is defined in the config file. The config file
+or Excel spreadsheet as it is defined in the config file. The config file
 also contains relations between the source items and the columns
 in the target spreadsheet.
 

@@ -18,7 +18,7 @@ setup(
     long_description_content_type = 'text/markdown',
     url = 'https://github.com/ari3s/synct',
     author = 'Jan Beran',
-    author_email = 'jberan@redhat.com',
+    author_email = 'ari3s.git@gmail.com',
     license = 'GPL-3.0-or-later',
     zip_safe = False,
     entry_points={
