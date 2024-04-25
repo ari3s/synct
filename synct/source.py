@@ -31,6 +31,7 @@ import synct.logger as log
 SOURCE_DATA_KEY = 'SOURCE DATA: key = '
 
 # Warning messages:
+DUPLICATED_TARGET_COLUMN_NAME = 'duplicated column name in the target sheet '
 MISSING_IN_THE_TARGET_SPREADSHEET = 'missing in the target spreadsheet'
 
 class SourceData:
@@ -39,12 +40,12 @@ class SourceData:
     key_dict = {}
     used_key = {}
 
-    def __init__(self, source_data, sheet_config, target_sheet=None):
+    def __init__(self, source_data, sheet_config, target_sheet_name=None, target_sheet=None):
         """ Convert source data """
         self.key_dict = {}
         self.used_key = {}
         converted_data = []
-        columns_list = create_columns_list(sheet_config, target_sheet)
+        columns_list = create_columns_list(sheet_config, target_sheet_name, target_sheet)
         index = 0
         for source_item in source_data:
             key_value = get_value(source_item, sheet_config, sheet_config.key)
@@ -111,11 +112,16 @@ def cell_init_value(target_sheet, column, sheet_config, key_value):
             value = target_sheet.loc[target_row, (column)]
     return value
 
-def create_columns_list(sheet_config, target_sheet):
+def create_columns_list(sheet_config, target_sheet_name, target_sheet):
     """ Create a columns list """
     columns_list = list(sheet_config.columns.keys())
     if target_sheet is not None:
+        duplicates = []
         for column in target_sheet.columns:
+            if column in duplicates:
+                col = column if column else "<empty string>"
+                log.warning(DUPLICATED_TARGET_COLUMN_NAME + target_sheet_name + ': ' +col)
+            duplicates.append(column)
             if column not in columns_list:
                 columns_list.append(column)
     return columns_list

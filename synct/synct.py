@@ -85,7 +85,7 @@ def get_data(config, target_spreadsheet):
         if config.sheets[sheet_name].default_columns:
             source_data[sheet_name] = SourceData( \
                 config.source.data_query(sheet_name, query), \
-                config.sheets[sheet_name], target_spreadsheet.data[sheet_name])
+                config.sheets[sheet_name], sheet_name, target_spreadsheet.data[sheet_name])
         else:
             source_data[sheet_name] = SourceData( \
                 config.source.data_query(sheet_name, query), \

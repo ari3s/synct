@@ -93,7 +93,7 @@ def set_source_data_instance(source_data, sheet_conf, tsheet_instance):
     source_data_instance = {}
     if sheet_conf[SHEET].default_columns:
         source_data_instance[SHEET] = SourceData(source_data, \
-            sheet_conf[SHEET], tsheet_instance.data[SHEET])
+            sheet_conf[SHEET], SHEET, tsheet_instance.data[SHEET])
     else:
         source_data_instance[SHEET] = SourceData(source_data, \
             sheet_conf[SHEET])
