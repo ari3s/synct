@@ -22,6 +22,8 @@ import argparse
 import importlib
 import pyperclip
 
+import pandas as pd
+
 import synct.logger as log
 
 from synct.config import Config
@@ -93,13 +95,34 @@ def get_data(config, target_spreadsheet):
     log.check_error()
     return source_data
 
+def keep_formula(cell):
+    """ Keep formula and ignore anything else """
+    result = None
+    if isinstance(cell, str) and len(cell) > 0 and cell[0] == '=':
+        result = cell
+    elif isinstance(cell, pd.core.series.Series):
+        formula_flag = False
+        tmp = cell.copy()
+        for index, item in enumerate(list(cell)):
+            if isinstance(item, str) and len(item) > 0 and item[0] == '=':
+                formula_flag = True
+            else:
+                tmp.iat[index] = ''
+        if formula_flag:
+            result = tmp
+    return result
+
 def get_formula(source, target, sheet_name):
     """
     Get formula in the target spreadsheet columns, that are not included
     in the source columns, from the last row.
     """
     formula = {}
+    columns = {}
     for column in target.data[sheet_name].columns:
+        if column in columns:
+            continue
+        columns[column] = True
         condition_1 = target.sheets_config[sheet_name].inherit_formulas and \
                 (column not in list(target.sheets_config[sheet_name].columns.keys()) or \
                 target.sheets_config[sheet_name].default_columns and \
@@ -111,11 +134,9 @@ def get_formula(source, target, sheet_name):
                 cell = target.data[sheet_name].at[len(target.data[sheet_name])-1, column]
             except KeyError:
                 continue
-            try:
-                if cell[0] == "=":
-                    formula[column] = cell
-            except (IndexError, TypeError):
-                continue
+            result = keep_formula(cell)
+            if result is not None:
+                formula[column] = result
     return formula
 
 def transform_data(source, target, args):
@@ -144,7 +165,8 @@ def transform_data(source, target, args):
                     log.warning(message)
                 target.remove_rows[sheet_name].append(row)
                 continue
-            update_target_row_data(source[sheet_name], key_index, target.data[sheet_name], row)
+            update_target_row_data(source[sheet_name], key_index, target.data[sheet_name], \
+                    target.unique_columns[sheet_name], row)
         # Identify missing keys in the target sheet which data are available from the source
         missing_target_keys = source[sheet_name].check_missing_keys(sheet_name, key, \
                 target.sheets_config[sheet_name], args.add)
@@ -152,7 +174,8 @@ def transform_data(source, target, args):
             formula = get_formula(source, target, sheet_name)
             for key_value in missing_target_keys:
                 update_target_row_data(source[sheet_name], source[sheet_name].key_dict[key_value], \
-                        target.data[sheet_name], len(target.data[sheet_name]), formula)
+                        target.data[sheet_name], target.unique_columns[sheet_name], \
+                        len(target.data[sheet_name]), formula)
         missing_all_target_key_values = missing_all_target_key_values + missing_target_keys
 
     if missing_all_target_key_values:

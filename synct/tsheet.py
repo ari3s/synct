@@ -28,6 +28,7 @@ class Tsheet:   # pylint: disable=too-many-instance-attributes
     data = {}
     rows = {}
     remove_rows = {}
+    unique_columns = {}
     active_sheets = []
 #    sheet_length = {}   # It is needed for delete_rows workaround.
 
@@ -48,6 +49,8 @@ class Tsheet:   # pylint: disable=too-many-instance-attributes
             else:
                 self.remove_rows[sheet] = []
                 self.rows[sheet] = len(self.data[sheet].index)
+                self.unique_columns[sheet] = list(dict.fromkeys( \
+                    self.data[sheet].columns.values.tolist()))
         for sheet in remove_sheets:         # remove signed empty sheets from the next operations
             self.active_sheets.remove(sheet)
 
@@ -101,22 +104,46 @@ def normalize_type(value):
         value = int(value)
     return value
 
-def update_target_row_data(s_sheet, s_key_index, t_sheet, t_row, formula=None):
-    """ Update the target row with source data """
-    for column in t_sheet.columns:
-        if column in s_sheet.data.columns:
-            value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
-            if value == '' and formula and column in formula:
-                value = formula[column]
-            t_sheet.loc[t_row, (column)] = value
+def update_target_cell_1(s_sheet, s_key_index, t_sheet, column, t_row, formula):
+    """ Update the target cell with source data """
+    if isinstance(s_sheet.data.loc[s_key_index, (column)], pd.core.series.Series):
+        values = [''] * len(t_sheet.loc[t_row, (column)])
+        for index, element in enumerate(s_sheet.data.loc[s_key_index, (column)]):
+            values[index] = normalize_type(element)
+            if values[index] == '' and formula and column in formula:
+                values[index] = formula[column][index]
+        t_sheet.loc[t_row, (column)] = values
+    else:
+        value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
+        if value == '' and formula and column in formula:
+            value = formula[column]
+        t_sheet.loc[t_row, (column)] = value
+
+def update_target_cell_2(t_sheet, column, t_row, formula):
+    """ Update the target cell with data """
+    if isinstance(t_sheet.loc[t_row, (column)], pd.core.series.Series):
+        values = [''] * len(t_sheet.loc[t_row, (column)])
+        for index, element in enumerate(t_sheet.loc[t_row, (column)].fillna(value='')):
+            values[index] = normalize_type(element)
+            if values[index] == '' and formula and column in formula:
+                values[index] = formula[column][index]
+        t_sheet.loc[t_row, (column)] = values
+    else:
+        if formula and column in formula:
+            value = formula[column]
         else:
-            if formula and column in formula:
-                value = formula[column]
-            else:
-                value = ""
-            try:
-                if pd.isnull(t_sheet.loc[t_row, (column)]):
-                    t_sheet.loc[t_row, (column)] = normalize_type(value)   # fix undefined value
-            # Fix undefined variable or value issue
-            except (KeyError, ValueError):
+            value = ''
+        try:
+            if pd.isnull(t_sheet.loc[t_row, (column)]):
                 t_sheet.loc[t_row, (column)] = normalize_type(value)
+        # Fix undefined variable or value issue
+        except (KeyError, ValueError):
+            t_sheet.loc[t_row, (column)] = normalize_type(value)
+
+def update_target_row_data(s_sheet, s_key_index, t_sheet, t_unique_columns, t_row, formula=None):
+    """ Update the target row with source data """
+    for column in t_unique_columns:
+        if column in s_sheet.data.columns:
+            update_target_cell_1(s_sheet, s_key_index, t_sheet, column, t_row, formula)
+        else:
+            update_target_cell_2(t_sheet, column, t_row, formula)
