@@ -1,0 +1,7 @@
+G_ISSUE      G_STATUS     G_PRIORITY  ID        PID                                                        NOTE    G_PRIORITY  ID_COPY                               ID_COPY  ID_COPY
+PROJECT-100  In_Progress  high        10325648  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Blue    high        =INDIRECT(ADDRESS(ROW(),COLUMN()-3))  FAKE[0]  =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
+PROJECT-102  Closed       urgent      20518495  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Red     urgent      =INDIRECT(ADDRESS(ROW(),COLUMN()-3))  FAKE[1]  =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
+PROJECT-103  In_Progress  medium      10236845  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))  Silver  medium      =INDIRECT(ADDRESS(ROW(),COLUMN()-3))  FAKE[2]  =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
+PROJECT-101  New          low         14253658  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))          low         =INDIRECT(ADDRESS(ROW(),COLUMN()-3))           =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
+PROJECT-104  New          low         30021457  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))          low         =INDIRECT(ADDRESS(ROW(),COLUMN()-3))           =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
+PROJECT-105  New          medium      19057812  =CONCAT(INDIRECT("D"&ROW()),RIGHT(INDIRECT("A"&ROW()),3))          medium      =INDIRECT(ADDRESS(ROW(),COLUMN()-3))           =INDIRECT(ADDRESS(ROW(),COLUMN()-5))
