@@ -104,7 +104,8 @@ def normalize_type(value):
         value = int(value)
     return value
 
-def update_target_cell_1(s_sheet, s_key_index, t_sheet, column, t_row, formula):
+def update_target_cell_1(s_sheet, s_key_index, \
+        t_sheet, column, t_row, formula):                   # pylint: disable=too-many-arguments
     """ Update the target cell with source data """
     if isinstance(s_sheet.data.loc[s_key_index, (column)], pd.core.series.Series):
         values = [''] * len(t_sheet.loc[t_row, (column)])
@@ -140,7 +141,8 @@ def update_target_cell_2(t_sheet, column, t_row, formula):
         except (KeyError, ValueError):
             t_sheet.loc[t_row, (column)] = normalize_type(value)
 
-def update_target_row_data(s_sheet, s_key_index, t_sheet, t_unique_columns, t_row, formula=None):
+def update_target_row_data(s_sheet, s_key_index, \
+        t_sheet, t_unique_columns, t_row, formula=None):    # pylint: disable=too-many-arguments
     """ Update the target row with source data """
     for column in t_unique_columns:
         if column in s_sheet.data.columns:
