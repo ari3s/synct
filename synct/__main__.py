@@ -18,7 +18,7 @@ synct reads data and copies in Google or Excel spreadsheet.
 
 """
 
-from synct import main        # pylint: disable=no-name-in-module
+from .synct import main
 
 if __name__ == '__main__':
     main()
