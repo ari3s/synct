@@ -20,6 +20,12 @@ synct reads data and copies in Google or Excel spreadsheet.
 
 import argparse
 import importlib
+import os
+import sys
+
+from importlib.metadata import version, PackageNotFoundError
+from pathlib import Path
+
 import pyperclip
 
 import pandas as pd
@@ -31,8 +37,8 @@ from synct.config import Config
 from synct.source import SourceData
 from synct.tsheet import update_target_row_data
 
-PROG = 'synct'
-VERSION = "1.6.1"               # Keep quotation marks here
+PROG = Path(__file__).stem
+VERSION_FILE = 'VERSION'
 DESCRIPTION = 'Retrieve data from a source and convert it to either '\
         'Google or Excel spreadsheet as defined in the configuration file.'
 EPILOG = 'More details at https://github.com/ari3s/synct'
@@ -55,7 +61,7 @@ UNKNOWN_KEY = 'unknown key in the sheet '
 def get_cli_parameters():
     """ Get parameters from CLI and check that they are correct """
     parser = argparse.ArgumentParser(prog=PROG, description=DESCRIPTION, epilog=EPILOG)
-    parser.add_argument('--version', action='version', version='%(prog)s '+VERSION)
+    parser.add_argument('--version', action='version', version='%(prog)s '+get_version())
     parser.add_argument('-c', '--config', type=str, default=CONFIG_FILE,
             help='config file (default: '+CONFIG_FILE+')')
     parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
@@ -79,6 +85,18 @@ def get_cli_parameters():
     args = parser.parse_args()
     log.setup(args.verbosity)
     return args
+
+def get_version():
+    """ Get this script version """
+    try:
+        ver = version(PROG)
+    except PackageNotFoundError:
+        try:
+            with open(os.path.split(sys.argv[0])[0]+"/../"+VERSION_FILE, encoding="utf-8") as file:
+                ver = file.read()
+        except IOError:
+            ver = "unknown version"
+    return ver
 
 def get_data(config, target_spreadsheet):
     """ Get source data """
