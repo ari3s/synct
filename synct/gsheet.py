@@ -111,15 +111,15 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
             self.spreadsheet_access = build('sheets', 'v4', credentials=self.creds,
                     cache_discovery=False).spreadsheets()
             log.debug(GOT_GOOGLE_SPREADSHEET_ACCESS)
-        except HttpError as error:
-            log.error(error)
+        except (HttpError, TimeoutError) as error:
+            log.fatal_error(error)
         # Get attributes
         try:
             spreadsheet = self.spreadsheet_access.get(spreadsheetId=self.spreadsheet_id, ranges=[],
                     includeGridData=False).execute()
             log.debug(GOT_GOOGLE_SPREADSHEET_ATTRIBUTES)
-        except HttpError as error:
-            log.error(error)
+        except (HttpError, TimeoutError) as error:
+            log.fatal_error(error)
         self.sheet_id = {}
         for sheet in spreadsheet['sheets']:
             self.sheet_id[sheet['properties']['title']] = sheet['properties']['sheetId']
@@ -132,7 +132,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
             raw_data = self.spreadsheet_access.values().get(
                     spreadsheetId=self.spreadsheet_id,
                     range=sheet, valueRenderOption='FORMULA').execute().get('values', [])
-        except HttpError as error:
+        except (HttpError, TimeoutError) as error:
             log.error(error)
             return
         # Normalize raw_data to the same length of the header
@@ -154,7 +154,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
             log.error(exception)
             log.fatal_error(WRONG_HEADER_OFFSET + "'" + sheet + "'")
 
-#        self.sheet_length[sheet] = len(self.data[sheet])   # not needed, it is requierd by ysheet
+#        self.sheet_length[sheet] = len(self.data[sheet])   # not needed, it is required by ysheet
 
     def insert_rows(self, sheet, start_row, inserted_rows):
         """ Insert empty rows in the spreadsheet """
@@ -259,7 +259,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                         spreadsheetId=self.spreadsheet_id, body=body).execute()
                 log.debug(response)
                 return True                         # successful operation
-            except HttpError as error:
+            except (HttpError, TimeoutError) as error:
                 if count >= MAX_DELAY_COUNT:
                     log.error(error)
                     return False                    # unsuccessful operation
