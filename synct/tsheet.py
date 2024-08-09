@@ -20,7 +20,6 @@ synct reads data and copies in Google or Excel spreadsheet.
 synct.tsheet: Target spreadsheet operations
 """
 
-import numpy
 import pandas as pd
 
 class Tsheet:   # pylint: disable=too-many-instance-attributes
@@ -98,24 +97,18 @@ class Tsheet:   # pylint: disable=too-many-instance-attributes
     def save(self):
         """ Save the target spreadsheet """
 
-def normalize_type(value):
-    """ Avoid numpy type int64 issue that is not allowed in JSON """
-    if numpy.issubdtype(type(value), int):
-        value = int(value)
-    return value
-
 def update_target_cell_1(s_sheet, s_key_index, \
         t_sheet, column, t_row, formula):                   # pylint: disable=too-many-arguments
     """ Update the target cell with source data """
     if isinstance(s_sheet.data.loc[s_key_index, (column)], pd.core.series.Series):
         values = [''] * len(t_sheet.loc[t_row, (column)])
         for index, element in enumerate(s_sheet.data.loc[s_key_index, (column)]):
-            values[index] = normalize_type(element)
+            values[index] = element
             if values[index] == '' and formula and column in formula:
                 values[index] = formula[column][index]
         t_sheet.loc[t_row, (column)] = values
     else:
-        value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
+        value = s_sheet.data.loc[s_key_index, (column)]
         if value == '' and formula and column in formula:
             value = formula[column]
         t_sheet.loc[t_row, (column)] = value
@@ -125,7 +118,7 @@ def update_target_cell_2(t_sheet, column, t_row, formula):
     if isinstance(t_sheet.loc[t_row, (column)], pd.core.series.Series):
         values = [''] * len(t_sheet.loc[t_row, (column)])
         for index, element in enumerate(t_sheet.loc[t_row, (column)].fillna(value='')):
-            values[index] = normalize_type(element)
+            values[index] = element
             if values[index] == '' and formula and column in formula:
                 values[index] = formula[column][index]
         t_sheet.loc[t_row, (column)] = values
@@ -136,10 +129,10 @@ def update_target_cell_2(t_sheet, column, t_row, formula):
             value = ''
         try:
             if pd.isnull(t_sheet.loc[t_row, (column)]):
-                t_sheet.loc[t_row, (column)] = normalize_type(value)
+                t_sheet.loc[t_row, (column)] = value
         # Fix undefined variable or value issue
         except (KeyError, ValueError):
-            t_sheet.loc[t_row, (column)] = normalize_type(value)
+            t_sheet.loc[t_row, (column)] = value
 
 def update_target_row_data(s_sheet, s_key_index, \
         t_sheet, t_unique_columns, t_row, formula=None):    # pylint: disable=too-many-arguments
