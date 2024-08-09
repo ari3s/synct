@@ -149,7 +149,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         # Convert data to pandas format
         try:
             self.data[sheet] = pd.DataFrame(raw_data[header_offset+1:], \
-                    columns=raw_data[header_offset])
+                    columns=raw_data[header_offset], dtype='object')
         except ValueError as exception:
             log.error(exception)
             log.fatal_error(WRONG_HEADER_OFFSET + "'" + sheet + "'")

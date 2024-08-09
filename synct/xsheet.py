@@ -99,15 +99,15 @@ class Xsheet:
                 if pathlib.Path(self.file_name).suffix == '.csv':
                     if table_name:
                         log.warning(IGNORED_TABLE)
-                    self.data = pd.read_csv(self.file_name, engine=self.engine,
+                    self.data = pd.read_csv(self.file_name, engine=self.engine, dtype='object',
                                             sep=None,   # python engine can detect the separator
                                             skiprows=offset_value, keep_default_na=False)
                 elif table_name:
-                    self.data = pd.read_excel(self.file_name, engine=self.engine,
+                    self.data = pd.read_excel(self.file_name, engine=self.engine, dtype='object',
                                               sheet_name=table_name, skiprows=offset_value,
                                               keep_default_na=False)
                 else:
-                    self.data = pd.read_excel(self.file_name, engine=self.engine,
+                    self.data = pd.read_excel(self.file_name, engine=self.engine, dtype='object',
                                               skiprows=offset_value, keep_default_na=False)
         except (OSError, ValueError) as exception:
             log.error(exception)

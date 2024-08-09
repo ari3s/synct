@@ -65,7 +65,7 @@ class SourceData:
             self.used_key[key_value] = False
             converted_data.append(list(row.values()))
         self.data = pd.DataFrame(converted_data[0:], index=range(0, len(converted_data)), \
-                                 columns=columns_list)
+                                 columns=columns_list, dtype='object')
 
     def check_missing_keys(self, sheet, key, sheet_config, enable_add):
         """ Check missing keys in source data """

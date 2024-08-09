@@ -82,7 +82,7 @@ class Ysheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         """ Read sheet data to pandas data frame """
         log.debug(READ_LOCAL_SHEET + "'" + sheet + "'")
         # Get data sheet
-        self.data[sheet] = pd.DataFrame(self.workbook[sheet].values)
+        self.data[sheet] = pd.DataFrame(self.workbook[sheet].values, dtype='object')
         # Get header
         header_list = self.data[sheet].iloc[ \
                 self.sheets_config[sheet].header_offset].values.flatten().tolist()
