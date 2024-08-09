@@ -203,6 +203,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
 def get_source(config_data, args):
     """ Get input presented in the config file """
     param = None
+    source = None
     if BUGZILLA in config_data:
         param = BUGZILLA
         source = access_bugzilla(config_data)
