@@ -30,7 +30,6 @@ class Tsheet:   # pylint: disable=too-many-instance-attributes
     remove_rows = {}
     unique_columns = {}
     active_sheets = []
-#    sheet_length = {}   # It is needed for delete_rows workaround.
 
     def __init__(self, config):
         """ Acccess the target spreadsheet and read data """
@@ -104,20 +103,28 @@ def normalize_type(value):
         value = int(value)
     return value
 
+def retrieve_formula(formula, column, value, index, element):
+    """ If formula is required then retrieve it """
+    value = element
+    if value == '' and formula and column in formula:
+        value = formula[column].iloc[(index)]
+    return value
+
 def update_target_cell_1(s_sheet, s_key_index, \
         t_sheet, column, t_row, formula):                   # pylint: disable=too-many-arguments
     """ Update the target cell with source data """
     if isinstance(s_sheet.data.loc[s_key_index, (column)], pd.core.series.Series):
         values = [''] * len(t_sheet.loc[t_row, (column)])
         for index, element in enumerate(s_sheet.data.loc[s_key_index, (column)]):
-            values[index] = normalize_type(element)
-            if values[index] == '' and formula and column in formula:
-                values[index] = formula[column][index]
+            values[index] = retrieve_formula( \
+                    formula, column, values[index], index, normalize_type(element))
         t_sheet.loc[t_row, (column)] = values
     else:
         value = normalize_type(s_sheet.data.loc[s_key_index, (column)])
         if value == '' and formula and column in formula:
             value = formula[column]
+        if isinstance(value, str):                          # avoid dtype incompatibility
+            t_sheet[column] = t_sheet[column].astype('str_')
         t_sheet.loc[t_row, (column)] = value
 
 def update_target_cell_2(t_sheet, column, t_row, formula):
@@ -125,9 +132,8 @@ def update_target_cell_2(t_sheet, column, t_row, formula):
     if isinstance(t_sheet.loc[t_row, (column)], pd.core.series.Series):
         values = [''] * len(t_sheet.loc[t_row, (column)])
         for index, element in enumerate(t_sheet.loc[t_row, (column)].fillna(value='')):
-            values[index] = normalize_type(element)
-            if values[index] == '' and formula and column in formula:
-                values[index] = formula[column][index]
+            values[index] = retrieve_formula( \
+                    formula, column, values[index], index, normalize_type(element))
         t_sheet.loc[t_row, (column)] = values
     else:
         if formula and column in formula:
