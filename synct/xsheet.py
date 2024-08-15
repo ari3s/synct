@@ -66,7 +66,7 @@ class Xsheet:
         log.debug(INPUT_DATA_QUERY + str(sheet_query))
         try:
             data = loads(self.data.query(sheet_query).to_json(orient="records"))
-        except (SyntaxError, ValueError) as exception:
+        except (AttributeError, KeyError, SyntaxError, ValueError) as exception:
             log.error(QUERY_FAILED + sheet + ':\n' + sheet_query)
             log.fatal_error(exception)
         except (pd.errors.UndefinedVariableError) as exception:
