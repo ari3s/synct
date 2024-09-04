@@ -1,11 +1,36 @@
+# Description
+# -----------
 #
-# synct config file for data update from Bugzilla in Google spreadsheet
+# This is the configuration file for the synct script, used to update data from GitHub
+# in a Google spreadsheet:
+#
+# https://docs.google.com/spreadsheets/d/1eBVLsSVlCseXCqR3BpG1ppGL1PKaBUY8TAmXdABbYkM/
+#
+# This configuration file enables the retrieval of data on open bugs for the libdnf and
+# rpm packages in Fedora from Bugzilla. Authorized access to both Bugzilla and Google
+# Sheets is required, as the script uses their APIs. Replace the API_KEY configuration
+# parameter with the name of your Bugzilla API key file.
+#
+# Examples of how to run the synct script with this configuration file
+# --------------------------------------------------------------------
+#
+# 1. Run this command to check for any new open bugs not yet included in the spreadsheet,
+#    or to identify bugs that are no longer relevant because they have already been closed:
+#
+#    synct -c synct_bz_example.yaml -n
+#
+# 2. Make a copy of the spreadsheet to have write permissions, and update the
+#    SPREADSHEET_ID configuraion parameter with the value of your copy.
+#    Use this command to update the spreadsheet with the most current data,
+#    specifically for the rpm package in the "rpm" sheet:
+#
+#    synct -c synct_bz_example.yaml -a -r -s rpm
 #
 BUGZILLA:
   DOMAIN: bugzilla.redhat.com
   URL: https://bugzilla.redhat.com/xmlrpc.cgi
   API_KEY: ~/.config/python-bugzilla/bugzillarc
-SPREADSHEET_ID: 1ftibl011mzlge8gcJ0MfmvIw_C8Hq2iYeUdU6B-rbwI
+SPREADSHEET_ID: 1eBVLsSVlCseXCqR3BpG1ppGL1PKaBUY8TAmXdABbYkM
 DELIMITER: ", "
 HEADER_OFFSET: 0
 SHEET_COLUMNS:

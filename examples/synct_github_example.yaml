@@ -1,10 +1,34 @@
+# Description
+# -----------
 #
-# synct config file for data update from GitHub in Google spreadsheet
+# This is the configuration file for the synct script, used to update data from GitHub
+# in a Google spreadsheet:
+#
+# https://docs.google.com/spreadsheets/d/15xTRtrm6252viCE1nA-O4lCA_flk3SBlwJLZm2ipg-s/
+#
+# This configuration file enables the retrieval of all issues related to the synct
+# script on GitHub. Authorized access to both GitHub and Google Sheets is required,
+# as the script uses their APIs. Replace the TOKEN configuration parameter with the
+# name of your GitHub token file.
+#
+# Examples of how to run the synct script with this configuration file
+# --------------------------------------------------------------------
+#
+# 1. Run this command to check for any issues not yet included in the spreadsheet,
+#    without making changes to the data:
+#
+#    synct -c synct_github_example.yaml -n
+#
+# 2. Make a copy of the spreadsheet to have write permissions, and update the
+#    SPREADSHEET_ID configuraion parameter with the value of your copy.
+#    Use this command to update the spreadsheet with the most current data:
+#
+#    synct -c synct_github_example.yaml -a
 #
 GITHUB:
   SEARCH_API: "https://api.github.com/search/"
   TOKEN: "~/.github/github_token"
-SPREADSHEET_ID: 1aEHCYma8orzDiDbkOnDifoFL2LuOy4b0aVAD1j7NTPg
+SPREADSHEET_ID: 15xTRtrm6252viCE1nA-O4lCA_flk3SBlwJLZm2ipg-s
 HEADER_OFFSET: 2
 SHEET_COLUMNS:
   Issue Number: 

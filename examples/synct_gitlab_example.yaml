@@ -1,16 +1,40 @@
+# Description
+# -----------
 #
-# syncit config file for data update from GitLab in Google spreadsheet
+# This is the configuration file for the synct script, used to update data from GitHub
+# in a Google spreadsheet:
+#
+# https://docs.google.com/spreadsheets/d/1-_XPsoUOQDiVqdpk3e2k1KH9JZoUYq6x5S13byORhXk/
+#
+# This configuration file enables the retrieval of all issues related to the deveper-guide
+# project on GitLab. Authorized access to both GitLab and Google Sheets is required,
+# as the script uses their APIs. Replace the TOKEN configuration parameter with the
+# name of your GitLab token file.
+#
+# Examples of how to run the synct script with this configuration file
+# --------------------------------------------------------------------
+#
+# 1. Run this command to check for any issues not yet included in the spreadsheet,
+#    without making changes to the data:
+#
+#    synct -c synct_gitlab_example.yaml -n
+#
+# 2. Make a copy of the spreadsheet to have write permissions, and update the
+#    SPREADSHEET_ID configuraion parameter with the value of your copy.
+#    Use this command to update the spreadsheet with the most current data:
+#
+#    synct -c synct_gitlab_example.yaml -a
 #
 GITLAB:
-  SEARCH_API: "https://gitlab.cee.redhat.com/api/v4/groups/"
-  TOKEN: "~/.gitlab/gitlab_token"
-SPREADSHEET_ID: 1jj2EI5Kum7Q2_DgJMKGAAP7bzCwOOX_WBOZ9AussSZo
+  SEARCH_API: "https://gitlab.com/api/v4/projects/"
+  TOKEN: "~/.gitlab/gitlab-token"
+SPREADSHEET_ID: 1-_XPsoUOQDiVqdpk3e2k1KH9JZoUYq6x5S13byORhXk
 HEADER_OFFSET: 2
 SHEET_COLUMNS:
   Issue Number: 
-    SOURCE: iid 
+    SOURCE: iid
     KEY: true
-    LINK: https://gitlab.cee.redhat.com/developer-guide/developer-guide/-/issues/
+    LINK: https://gitlab.com/gitlab-org/gitlab-docs/-/issues/
   Title: title
   Assignee:
     SOURCE:
@@ -25,4 +49,5 @@ SHEET_COLUMNS:
 SHEETS:
 - NAME: Issues
   DELIMITER: "\n"
-  QUERY: 9649/search?scope=issues&search=file
+# The query below starts with the project ID
+  QUERY: 1794617/issues?labels=backend&per_page=20&order_by=created_at&sort=asc

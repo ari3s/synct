@@ -1,11 +1,38 @@
 #
 # syncit config file for data update from Jira in Google spreadsheet
 #
+# Description
+# -----------
+#
+# This is the configuration file for the synct script, used to update data from GitHub
+# in a Google spreadsheet:
+#
+# https://docs.google.com/spreadsheets/d/1zCMp1IUWoQB3JFe7FHbB2dmnFY6AzpJcZLXzJJuOoW0/
+#
+# This configuration file enables the retrieval of all bug issues related to the rpm
+# package in RHEL from Jira. Authorized access to both Jira and Google Sheets is required,
+# as the script uses their APIs. Replace the TOKEN configuration parameter with the
+# name of your Jira token file.
+#
+# Examples of how to run the synct script with this configuration file
+# --------------------------------------------------------------------
+#
+# 1. Run this command to check for any issues not yet included in the spreadsheet,
+#    without making changes to the data:
+#
+#    synct -c synct_jira_example.yaml -n
+#
+# 2. Make a copy of the spreadsheet to have write permissions, and update the
+#    SPREADSHEET_ID configuraion parameter with the value of your copy.
+#    Use this command to update the spreadsheet with the most current data:
+#
+#    synct -c synct_jira_example.yaml -a
+#
 JIRA:
   SERVER: https://issues.redhat.com/
   TOKEN: "~/.jira/jira.token"
   MAX_RESULTS: '1000'
-SPREADSHEET_ID: 1RuA01d-Asa6EKhZ9HJU7ykXk-wHjX3SIUsEgScS3ONM
+SPREADSHEET_ID: 1zCMp1IUWoQB3JFe7FHbB2dmnFY6AzpJcZLXzJJuOoW0
 SHEETS:
 - NAME: rpm
   QUERY: project = RHEL AND component = rpm AND issuetype = Bug
