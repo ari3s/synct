@@ -47,22 +47,28 @@ class Gitlab:
         self.url = url
 
     def data_query(self, sheet, query):
-        """ Query to GitLab """
-        log.debug(GITLAB_QUERY + self.url + query)
-        try:
-            response = requests.get(self.url+query, headers=self.headers, timeout=TIMEOUT)
-        except (AttributeError, TypeError) as exception:
-            log.error(GITLAB_QUERY_FAILED + sheet + ':\n' + self.url + query)
-            log.fatal_error(exception)
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exception:
-            log.error(GITLAB_QUERY_FAILED + sheet + ':\n' + self.url + query)
-            log.fatal_error(exception)
-        if not response.ok:
-            log.warning(INCOMPLETE_RESULTS)
-        resp = response.json()
-        if ERROR in resp:
-            log.error(ERROR + ': '+ str(resp[ERROR]))
-        return resp
+        """ Query to GitLab with paging """
+        request = self.url + query
+        response_list = []
+        while len(request) > 0:
+            log.debug(GITLAB_QUERY + request)
+            try:
+                response = requests.get(request, headers=self.headers, timeout=TIMEOUT)
+            except (AttributeError, TypeError) as exception:
+                log.error(GITLAB_QUERY_FAILED + sheet + ':\n' + request)
+                log.fatal_error(exception)
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exception:
+                log.error(GITLAB_QUERY_FAILED + sheet + ':\n' + request)
+                log.fatal_error(exception)
+            if not response.ok:
+                log.warning(INCOMPLETE_RESULTS)
+            resp = response.json()
+            if ERROR in resp:
+                log.error(ERROR + ': '+ str(resp[ERROR]))
+                break
+            response_list.extend(resp)
+            request = find_between(response.headers['link'], '<', '>; rel="next"')
+        return response_list
 
     def get_token(self, token_file_name):
         """ Get token from the file """
@@ -79,3 +85,13 @@ class Gitlab:
             self.headers = {'PRIVATE-TOKEN': token}
         else:
             self.headers = None
+
+def find_between(string, first_string, last_string):
+    """ Get substring between two strings """
+    try:
+        end = string.index(last_string)
+        string = string[:end]
+        start = string.rindex(first_string) + len(first_string)
+        return string[start:]
+    except ValueError:
+        return ''
