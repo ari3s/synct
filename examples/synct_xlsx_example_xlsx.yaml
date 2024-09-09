@@ -1,0 +1,31 @@
+# Description
+# -----------
+#
+# This is the configuration file for the synct script, used to update data from the local
+# Excel spreadsheet in another local Excel spreadsheet, both in XLSX format.
+#
+# Examples of how to run the synct script with this configuration file
+# --------------------------------------------------------------------
+#
+# 1. Run this command to check for any updates not yet included in the target spreadsheet,
+#    without making changes to the data:
+#
+#    synct -c synct_xlsx_example_xlsx.yaml -n
+#
+# 2. Use this command to update the target spreadsheet with the the most current data:
+#
+#    synct -c synct_xlsx_example_xlsx.yaml -a -r
+#
+FILE:
+  TYPE: SPREADSHEET
+  FILE_NAME: synct_xlsx_example_update.xlsx
+SPREADSHEET: synct_xlsx_example.xlsx
+HEADER_OFFSET: 2
+DEFAULT_COLUMNS: True
+INHERIT_FORMULAS: True
+SHEET_COLUMNS:
+  Part ID:
+    KEY: True
+SHEETS:
+- NAME: Store
+  QUERY: "`Part ID` == `Part ID`"
