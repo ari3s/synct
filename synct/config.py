@@ -27,8 +27,7 @@ import yaml
 import synct.logger as log
 
 from synct.bzilla import Bzilla
-from synct.github import Github
-from synct.gitlab import Gitlab
+from synct.git import Github, Gitlab
 from synct.jira import Jira
 from synct.xsheet import Xsheet
 
