@@ -21,15 +21,16 @@ synct.gsheet: Google spreadsheet access and operations
 """
 
 import os
-import pickle
 
+from json.decoder import JSONDecodeError
 from time import sleep
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
-from google.auth.exceptions import GoogleAuthError
+from google.oauth2.credentials import Credentials
 
 import pandas as pd
 
@@ -38,7 +39,7 @@ from synct.tsheet import Tsheet
 
 CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
-TOKEN_PICKLE = 'token.pickle'
+TOKEN_JSON = 'token.json'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Write requests limit handling:
@@ -60,6 +61,8 @@ SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connect
 GOOGLE_CREDENTIALS_JSON_FILE = 'Google credentials JSON file: '
 WRONG_HEADER = 'wrong header in the sheet '
 WRONG_HEADER_OFFSET = 'header offset could be wrong in the sheet '
+GOOGLE_AUTHORIZATION_ERROR = 'Google authorization error'
+INSUFFICIENT_TOKEN = 'Insufficient ' + TOKEN_JSON + ' file'
 
 class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
@@ -72,25 +75,27 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
 
     def access_spreadsheet(self):
         """
-        The file token.pickle stores the user's access and refresh tokens,
+        The file token.json stores the user's access and refresh tokens,
         and is created automatically when the authorization flow completes
         for the first time.
         Taken from https://developers.google.com/sheets/api/quickstart/python
         """
         log.debug(ACCESS_GOOGLE_SPREADSHEET)
-        self.creds = None
-        if os.path.exists(TOKEN_PICKLE):
-            with open(TOKEN_PICKLE, 'rb') as self.token:
-                self.creds = pickle.load(self.token)
+        creds = None
+        if os.path.exists(TOKEN_JSON):
+            try:
+                creds = Credentials.from_authorized_user_file(TOKEN_JSON, SCOPES)
+            except JSONDecodeError:
+                pass
         # If there are no (valid) credentials available, let the user log in.
-        if not self.creds or not self.creds.valid:
-            if self.creds and self.creds.expired and self.creds.refresh_token:
-                self.creds.refresh(Request())
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
                 try:
-                    self.creds.refresh(Request())
-                except GoogleAuthError as exception:
-                    log.error(SPREADSHEET_CONNECTION_FAILURE)
-                    log.fatal_error(exception)
+                    creds.refresh(Request())
+                except RefreshError as error:
+                    log.error(GOOGLE_AUTHORIZATION_ERROR)
+                    log.error(error)
+                    log.fatal_error(INSUFFICIENT_TOKEN)
             else:
                 if GOOGLE_APPLICATION_CREDENTIALS in os.environ:
                     credentials_json = os.getenv(GOOGLE_APPLICATION_CREDENTIALS)
@@ -102,24 +107,28 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                 except (FileNotFoundError, ValueError) as exception:
                     log.error(GOOGLE_CREDENTIALS_JSON_FILE+credentials_json)
                     log.fatal_error(exception)
-                self.creds = flow.run_local_server(port=0)
+                creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open(TOKEN_PICKLE, 'wb') as self.token:
-                pickle.dump(self.creds, self.token)
+            with open(TOKEN_JSON, 'w', encoding='utf8') as token:
+                token.write(creds.to_json())
         try:
             # pylint: disable=no-member
-            self.spreadsheet_access = build('sheets', 'v4', credentials=self.creds,
+            self.spreadsheet_access = build('sheets', 'v4', credentials=creds,
                     cache_discovery=False).spreadsheets()
             log.debug(GOT_GOOGLE_SPREADSHEET_ACCESS)
         except (HttpError, TimeoutError) as error:
             log.fatal_error(error)
-        # Get attributes
+        # Get attributes of the spreadsheet
         try:
             spreadsheet = self.spreadsheet_access.get(spreadsheetId=self.spreadsheet_id, ranges=[],
                     includeGridData=False).execute()
             log.debug(GOT_GOOGLE_SPREADSHEET_ATTRIBUTES)
         except (HttpError, TimeoutError) as error:
             log.fatal_error(error)
+        except RefreshError as error:
+            log.error(GOOGLE_AUTHORIZATION_ERROR)
+            log.error(error)
+            log.fatal_error(INSUFFICIENT_TOKEN)
         self.sheet_id = {}
         for sheet in spreadsheet['sheets']:
             self.sheet_id[sheet['properties']['title']] = sheet['properties']['sheetId']
