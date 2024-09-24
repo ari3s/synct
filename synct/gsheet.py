@@ -111,7 +111,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             try:
-                with open(token_json, 'w', encoding='utf8') as token:
+                with open(token_json, 'w', encoding='utf-8') as token:
                     # Set token permissions
                     os.chmod(token_json, credentials_mode | S_IRUSR | S_IWUSR)
                     # Write the token
@@ -177,16 +177,16 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         """ Insert empty rows in the spreadsheet """
         log.debug(ADD_ROWS_GOOGLE_SHEET + "'" + sheet + "'")
         body = {
-            "requests": [
+            'requests': [
                 {
-                    "insertDimension": {
-                        "range": {
-                            "sheetId": self.sheet_id[sheet],
-                            "dimension": "ROWS",
-                            "startIndex": start_row,
-                            "endIndex": start_row+inserted_rows
+                    'insertDimension': {
+                        'range': {
+                            'sheetId': self.sheet_id[sheet],
+                            'dimension': 'ROWS',
+                            'startIndex': start_row,
+                            'endIndex': start_row+inserted_rows
                         },
-                        "inheritFromBefore": start_row > self.sheets_config[sheet].header_offset + 2
+                        'inheritFromBefore': start_row > self.sheets_config[sheet].header_offset + 2
                     }
                 }
             ]
@@ -196,14 +196,14 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
     def delete_rows(self, sheet, start_row, deleted_rows):
         """ Delete rows in the spreadsheet """
         body = {
-            "requests": [
+            'requests': [
                 {
-                    "deleteDimension": {
-                        "range": {
-                            "sheetId": self.sheet_id[sheet],
-                            "dimension": "ROWS",
-                            "startIndex": start_row,
-                            "endIndex": start_row+deleted_rows
+                    'deleteDimension': {
+                        'range': {
+                            'sheetId': self.sheet_id[sheet],
+                            'dimension': 'ROWS',
+                            'startIndex': start_row,
+                            'endIndex': start_row+deleted_rows
                         }
                     }
                 }
@@ -248,11 +248,11 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                         'rows': rows,
                         'fields': 'userEnteredFormat.textFormat.link.uri',
                         'range': {
-                            "sheetId": self.sheet_id[sheet],
-                            "startRowIndex": header_offset+1,
-                            "endRowIndex": len(self.data[sheet].index)+header_offset+1,
-                            "startColumnIndex": col,
-                            "endColumnIndex": col+1
+                            'sheetId': self.sheet_id[sheet],
+                            'startRowIndex': header_offset+1,
+                            'endRowIndex': len(self.data[sheet].index)+header_offset+1,
+                            'startColumnIndex': col,
+                            'endColumnIndex': col+1
                         }
                     }
                 }

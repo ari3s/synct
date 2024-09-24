@@ -66,11 +66,11 @@ def get_cli_parameters():
             help='config file (default: '+CONFIG_FILE+')')
     parser.add_argument('-s', '--sheet', nargs='+', type=str, action='extend',
             help='use the listed target sheets')
-    parser.add_argument('-a', '--add', action="store_true",
+    parser.add_argument('-a', '--add', action='store_true',
             help='enable to add missing items into the target spreadsheet')
-    parser.add_argument('-r', '--remove', action="store_true",
+    parser.add_argument('-r', '--remove', action='store_true',
             help='enable removing items in the target spreadsheet')
-    parser.add_argument('-n', '--noupdate', action="store_true",
+    parser.add_argument('-n', '--noupdate', action='store_true',
             help='disable target spreadsheet update')
     parser.add_argument('-f', '--file', type=str, default=None,
             help='file name of data source')
@@ -92,10 +92,10 @@ def get_version():
         ver = version(PROG)
     except PackageNotFoundError:
         try:
-            with open(os.path.split(sys.argv[0])[0]+"/../"+VERSION_FILE, encoding="utf-8") as file:
+            with open(os.path.split(sys.argv[0])[0]+'/../'+VERSION_FILE, encoding='utf-8') as file:
                 ver = file.read()
         except IOError:
-            ver = "unknown version"
+            ver = 'unknown version'
     return ver
 
 def get_data(config, target_spreadsheet):

@@ -147,7 +147,7 @@ class Config:   # pylint: disable=too-many-instance-attributes
         if pathlib.Path(args.config).suffix != '.yaml':
             log.warning(CONFIG_FILE + args.config + CONFIG_FILE_EXTENSION_IS_NOT_YAML)
         try:
-            with open(args.config, encoding='utf8') as config_file:
+            with open(args.config, encoding='utf-8') as config_file:
                 config_data = yaml.safe_load(config_file)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as exception:
             log.error(CONFIG_FILE + args.config)

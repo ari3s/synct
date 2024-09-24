@@ -65,7 +65,7 @@ class Xsheet:
         """ Query to input file """
         log.debug(INPUT_DATA_QUERY + str(sheet_query))
         try:
-            data = loads(self.data.query(sheet_query).to_json(orient="records"))
+            data = loads(self.data.query(sheet_query).to_json(orient='records'))
         except (AttributeError, KeyError, SyntaxError, ValueError) as exception:
             log.error(QUERY_FAILED + sheet + ':\n' + sheet_query)
             log.fatal_error(exception)

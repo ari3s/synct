@@ -119,7 +119,7 @@ def create_columns_list(sheet_config, target_sheet_name, target_sheet):
         duplicates = []
         for column in target_sheet.columns:
             if column in duplicates:
-                col = column if column else "<empty string>"
+                col = column if column else '<empty string>'
                 log.warning(DUPLICATED_TARGET_COLUMN_NAME + target_sheet_name + ': ' +col)
             duplicates.append(column)
             if column not in columns_list:

@@ -26,25 +26,25 @@ SOURCE_DATA = DATA_DIR / 'source_data.txt'
 INITIAL_DATA_BASIC = DATA_DIR / 'initial_data_basic.txt'
 INITIAL_DATA_ADV = DATA_DIR / 'initial_data_adv.txt'
 
-EXPECTED_DATA_BASIC_0 = DATA_DIR / "expected_data_basic_0.txt"
-EXPECTED_DATA_BASIC_1 = DATA_DIR / "expected_data_basic_1.txt"
-EXPECTED_DATA_BASIC_2 = DATA_DIR / "expected_data_basic_2.txt"
-EXPECTED_DATA_BASIC_3 = DATA_DIR / "expected_data_basic_3.txt"
-EXPECTED_DATA_BASIC_4 = DATA_DIR / "expected_data_basic_4.txt"
-EXPECTED_DATA_BASIC_5 = DATA_DIR / "expected_data_basic_5.txt"
-EXPECTED_DATA_BASIC_6 = DATA_DIR / "expected_data_basic_6.txt"
-EXPECTED_DATA_BASIC_7 = DATA_DIR / "expected_data_basic_7.txt"
+EXPECTED_DATA_BASIC_0 = DATA_DIR / 'expected_data_basic_0.txt'
+EXPECTED_DATA_BASIC_1 = DATA_DIR / 'expected_data_basic_1.txt'
+EXPECTED_DATA_BASIC_2 = DATA_DIR / 'expected_data_basic_2.txt'
+EXPECTED_DATA_BASIC_3 = DATA_DIR / 'expected_data_basic_3.txt'
+EXPECTED_DATA_BASIC_4 = DATA_DIR / 'expected_data_basic_4.txt'
+EXPECTED_DATA_BASIC_5 = DATA_DIR / 'expected_data_basic_5.txt'
+EXPECTED_DATA_BASIC_6 = DATA_DIR / 'expected_data_basic_6.txt'
+EXPECTED_DATA_BASIC_7 = DATA_DIR / 'expected_data_basic_7.txt'
 
-EXPECTED_DATA_ADV_0 = DATA_DIR / "expected_data_adv_0.txt"
-EXPECTED_DATA_ADV_1 = DATA_DIR / "expected_data_adv_1.txt"
-EXPECTED_DATA_ADV_2 = DATA_DIR / "expected_data_adv_2.txt"
-EXPECTED_DATA_ADV_3 = DATA_DIR / "expected_data_adv_3.txt"
-EXPECTED_DATA_ADV_4 = DATA_DIR / "expected_data_adv_4.txt"
-EXPECTED_DATA_ADV_5 = DATA_DIR / "expected_data_adv_5.txt"
-EXPECTED_DATA_ADV_6 = DATA_DIR / "expected_data_adv_6.txt"
-EXPECTED_DATA_ADV_7 = DATA_DIR / "expected_data_adv_7.txt"
+EXPECTED_DATA_ADV_0 = DATA_DIR / 'expected_data_adv_0.txt'
+EXPECTED_DATA_ADV_1 = DATA_DIR / 'expected_data_adv_1.txt'
+EXPECTED_DATA_ADV_2 = DATA_DIR / 'expected_data_adv_2.txt'
+EXPECTED_DATA_ADV_3 = DATA_DIR / 'expected_data_adv_3.txt'
+EXPECTED_DATA_ADV_4 = DATA_DIR / 'expected_data_adv_4.txt'
+EXPECTED_DATA_ADV_5 = DATA_DIR / 'expected_data_adv_5.txt'
+EXPECTED_DATA_ADV_6 = DATA_DIR / 'expected_data_adv_6.txt'
+EXPECTED_DATA_ADV_7 = DATA_DIR / 'expected_data_adv_7.txt'
 
-SHEET = "TEST"
+SHEET = 'TEST'
 
 class Args:                  #pylint: disable=too-few-public-methods
     """ Default command line arguments of the script """
@@ -103,9 +103,9 @@ def configure(default_columns, inherit_formulas):
     header_offset = 0
     delimiter = ' '
     sheet_columns = {}
-    key = "G_ISSUE"
+    key = 'G_ISSUE'
 
-    with open(CONFIG_DATA, encoding='utf8') as config_file:
+    with open(CONFIG_DATA, encoding='utf-8') as config_file:
         config_sheet_columns = yaml.safe_load(config_file.read())
 
     sheet_conf = {}
@@ -135,8 +135,8 @@ def custom_name_func(testcase_func, param_num, param):
     :param param: (an instance of param) will be the parameters which will be used.
     :return: test case name
     """
-    return (f"{testcase_func.__name__}_"
-            f"{parameterized.to_safe_name('_'.join([str(param.args[0]), param_num]))}")
+    return (f'{testcase_func.__name__}_'
+            f'{parameterized.to_safe_name("_".join([str(param.args[0]), param_num]))}')
 
 class TestTransformDataBasic(unittest.TestCase):
     """ Test the basic synct script functionality with unique columns """

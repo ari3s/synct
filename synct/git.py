@@ -56,7 +56,7 @@ class Git:
         if token_file_name:
             log.debug(self.git + GET_GIT_TOKEN)
             try:
-                with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
+                with open(os.path.expanduser(token_file_name), 'r', encoding='utf-8') as token_file:
                     token = token_file.read().rstrip('\n')
                     token_file.close()
             except OSError as exception:    #pylint: disable=duplicate-code

@@ -49,7 +49,7 @@ class Jira:
         self.max_results = max_results
 
     def data_query(self, sheet, query):
-        """ Get data required from Jira server"""
+        """ Get data required from Jira server """
         log.debug(JIRA_QUERY + query)
         try:
             data = self.access.search_issues(jql_str=query, maxResults=self.max_results)
@@ -63,7 +63,7 @@ class Jira:
         """ Get token from the file """
         log.debug(GET_JIRA_TOKEN)
         try:
-            with open(os.path.expanduser(token_file_name), 'r', encoding="utf8") as token_file:
+            with open(os.path.expanduser(token_file_name), 'r', encoding='utf-8') as token_file:
                 token = token_file.read().rstrip('\n')
         except OSError as exception:
             log.error(exception)
