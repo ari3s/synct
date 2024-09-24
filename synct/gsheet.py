@@ -22,6 +22,8 @@ synct.gsheet: Google spreadsheet access and operations
 
 import os
 
+from stat import S_IRUSR, S_IWUSR
+
 from json.decoder import JSONDecodeError
 from time import sleep
 
@@ -39,7 +41,8 @@ from synct.tsheet import Tsheet
 
 CREDENTIALS_JSON = 'credentials.json'
 GOOGLE_APPLICATION_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
-TOKEN_JSON = 'token.json'
+FILE_PERMISSIONS_MASK = 0o777
+TOKEN_JSON = '-token.json'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # Write requests limit handling:
@@ -59,10 +62,11 @@ UPDATE_GOOGLE_SHEET = 'update Google sheet: '
 # Error messages:
 SPREADSHEET_CONNECTION_FAILURE = 'failed to establish Google spreadsheet connection'
 GOOGLE_CREDENTIALS_JSON_FILE = 'Google credentials JSON file: '
+GOOGLE_TOKEN_FILE = 'Google token file: '
 WRONG_HEADER = 'wrong header in the sheet '
 WRONG_HEADER_OFFSET = 'header offset could be wrong in the sheet '
 GOOGLE_AUTHORIZATION_ERROR = 'Google authorization error'
-INSUFFICIENT_TOKEN = 'Insufficient ' + TOKEN_JSON + ' file'
+INSUFFICIENT_TOKEN = 'Insufficient Google token file: '
 
 class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
     """ Google spreadsheet class """
@@ -82,9 +86,10 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         """
         log.debug(ACCESS_GOOGLE_SPREADSHEET)
         creds = None
-        if os.path.exists(TOKEN_JSON):
+        (credentials_json, credentials_mode, token_json) = get_cred_files()
+        if os.path.exists(token_json):
             try:
-                creds = Credentials.from_authorized_user_file(TOKEN_JSON, SCOPES)
+                creds = Credentials.from_authorized_user_file(token_json, SCOPES)
             except JSONDecodeError:
                 pass
         # If there are no (valid) credentials available, let the user log in.
@@ -95,12 +100,8 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                 except RefreshError as error:
                     log.error(GOOGLE_AUTHORIZATION_ERROR)
                     log.error(error)
-                    log.fatal_error(INSUFFICIENT_TOKEN)
+                    log.fatal_error(INSUFFICIENT_TOKEN + token_json)
             else:
-                if GOOGLE_APPLICATION_CREDENTIALS in os.environ:
-                    credentials_json = os.getenv(GOOGLE_APPLICATION_CREDENTIALS)
-                else:
-                    credentials_json = CREDENTIALS_JSON
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(
                         credentials_json, scopes=SCOPES)
@@ -109,8 +110,15 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                     log.fatal_error(exception)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open(TOKEN_JSON, 'w', encoding='utf8') as token:
-                token.write(creds.to_json())
+            try:
+                with open(token_json, 'w', encoding='utf8') as token:
+                    # Set token permissions
+                    os.chmod(token_json, credentials_mode | S_IRUSR | S_IWUSR)
+                    # Write the token
+                    token.write(creds.to_json())
+            except OSError as exception:
+                log.error(GOOGLE_TOKEN_FILE+token_json)
+                log.fatal_error(exception)
         try:
             # pylint: disable=no-member
             self.spreadsheet_access = build('sheets', 'v4', credentials=creds,
@@ -128,7 +136,7 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
         except RefreshError as error:
             log.error(GOOGLE_AUTHORIZATION_ERROR)
             log.error(error)
-            log.fatal_error(INSUFFICIENT_TOKEN)
+            log.fatal_error(INSUFFICIENT_TOKEN + token_json)
         self.sheet_id = {}
         for sheet in spreadsheet['sheets']:
             self.sheet_id[sheet['properties']['title']] = sheet['properties']['sheetId']
@@ -275,3 +283,18 @@ class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
                 sleep(delay)                        # delay in sec
                 delay = DELAY_MULTIPLIER * delay    # prolong the next delay
         return False                                # unsuccessful, this way should never happen
+
+def get_cred_files():
+    """
+    Get credentials and token file names. The token file name is derived
+    from the credentials file name including the same path and permissions.
+    """
+    if GOOGLE_APPLICATION_CREDENTIALS in os.environ:
+        credentials_json = os.getenv(GOOGLE_APPLICATION_CREDENTIALS)
+    else:
+        credentials_json = CREDENTIALS_JSON
+    credentials_json = os.path.expanduser(credentials_json)
+    credentials_json_status = os.stat(credentials_json)
+    (root, ext) = os.path.splitext(credentials_json)    # pylint: disable=unused-variable
+    token_json = root + TOKEN_JSON
+    return (credentials_json, credentials_json_status.st_mode & FILE_PERMISSIONS_MASK, token_json)
