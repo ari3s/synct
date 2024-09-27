@@ -29,6 +29,22 @@ SCRIPT_TERMINATED = 'script terminated'
 
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
+class ErrorFlag:
+    """ Error flag handling """
+    def __init__(self):
+        """ Set the initial error flag value """
+        self._error_flag = False
+
+    def set(self):
+        """ Set the error flag """
+        self._error_flag = True
+
+    def check(self):
+        """ Check the error flag """
+        return self._error_flag
+
+ERROR_FLAG = ErrorFlag()        # Define the error flag
+
 def setup(verbosity):
     """ Transform the verbosity from CLI to logging level """
     base_loglevel = 30
@@ -39,8 +55,6 @@ def setup(verbosity):
     logging.addLevelName(logging.WARNING, 'warning')
     logging.addLevelName(logging.INFO, 'info')
     logging.addLevelName(logging.DEBUG, 'debug')
-    global e_flag                   # pylint: disable=invalid-name, global-variable-undefined
-    e_flag = False                  # error flag
 
 def fatal_error(error_message):
     """ Report the error and terminate as failed """
@@ -50,15 +64,13 @@ def fatal_error(error_message):
 
 def check_error():
     """ If error flag is set then teminate the script """
-    global e_flag                   # pylint: disable=invalid-name, global-variable-not-assigned
-    if e_flag:
+    if ERROR_FLAG.check():
         log.debug(SCRIPT_TERMINATED)
         sys.exit(1)
 
 def error(error_message):
     """ Report the error and terminate as failed """
-    global e_flag                   # pylint: disable=invalid-name, global-variable-undefined
-    e_flag = True                   # set error flag
+    ERROR_FLAG.set()
     log.error(error_message)
 
 def warning(warning_message):
