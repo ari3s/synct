@@ -28,6 +28,8 @@ from bugzilla import Bugzilla
 import synct.logger as log
 
 API_KEY = 'api_key'
+LIMIT = 'limit'
+OFFSET = 'offset'
 
 # Debug messages:
 ACCESS_BUGZILLA = 'access Bugzilla'
@@ -56,15 +58,32 @@ class Bzilla:
             log.error(BUGZILLA_CONNECTION_FAILURE)
 
     def data_query(self, sheet, query):
-        """ Query to Bugzilla """
-        log.debug(BUGZILLA_QUERY + str(query))
-        try:
-            data = self.bzilla_access.query(query)
-        except (AttributeError, TypeError) as exception:
-            self.bzilla_logout()
-            log.error(BUGZILLA_QUERY_FAILED + sheet + ':\n' + str(query))
-            log.fatal_error(exception)
-        return data
+        """ Query to Bugzilla with pagination """
+        response_list = []
+        if LIMIT in query:
+            limit = query[LIMIT]
+        else:
+            limit = 0
+            query[LIMIT] = limit
+        while True:
+            try:
+                log.debug(BUGZILLA_QUERY + str(query))
+                response = self.bzilla_access.query(query)
+            except (AttributeError, TypeError) as exception:
+                self.bzilla_logout()
+                log.error(BUGZILLA_QUERY_FAILED + sheet + ':\n' + str(query))
+                log.fatal_error(exception)
+            if len(response) == 0:
+                break                   # The query response is empty
+            response_list.extend(response)
+            if len(response) < limit:
+                break                   # The query responded with less items than the page limit
+            # Set next page query
+            if OFFSET in query:
+                query[OFFSET] = query[OFFSET] + len(response)
+            else:
+                query[OFFSET] = len(response)
+        return response_list
 
     def bzilla_logout(self):
         """ Bugzilla logout """
