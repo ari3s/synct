@@ -31,7 +31,7 @@
 JIRA:
   SERVER: https://issues.redhat.com/
   TOKEN: "~/.jira/jira.token"
-  MAX_RESULTS: '1000'
+  MAX_RESULTS: '50'
 SPREADSHEET_ID: 1zCMp1IUWoQB3JFe7FHbB2dmnFY6AzpJcZLXzJJuOoW0
 SHEETS:
 - NAME: rpm

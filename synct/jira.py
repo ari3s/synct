@@ -49,15 +49,23 @@ class Jira:
         self.max_results = max_results
 
     def data_query(self, sheet, query):
-        """ Get data required from Jira server """
-        log.debug(JIRA_QUERY + query)
-        try:
-            data = self.access.search_issues(jql_str=query, maxResults=self.max_results)
-        except (JIRAError, AttributeError) as exception:
-            self.access.close()
-            log.error(JIRA_QUERY_FAILED + sheet + ':\n' + query)
-            log.fatal_error(exception)
-        return data
+        """ Get data required from Jira server with pagination """
+        response_list = []
+        start_at = 0            # index of the first returned item
+        total = 1               # initial value that will be updated by Jira response in the cycle
+        while start_at < total:
+            log.debug(JIRA_QUERY + query)
+            try:
+                response = self.access.search_issues(jql_str=query, startAt=start_at, \
+                        maxResults=self.max_results)
+            except (JIRAError, AttributeError) as exception:
+                self.access.close()
+                log.error(JIRA_QUERY_FAILED + sheet + ':\n' + query)
+                log.fatal_error(exception)
+            response_list.extend(response)
+            start_at = start_at + len(response.iterable)
+            total = response.total
+        return response_list
 
     def get_token(self, token_file_name):
         """ Get token from the file """

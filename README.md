@@ -122,7 +122,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | Reserved word      | Description |
 | ------------------ | ----------- |
 | `API_KEY`          | File name containing API key to access Bugzilla. |
-| `BUGZILLA`         | Specifies that the script retrieves data from Bugzilla. It should contain `API_KEY`, `DOMAIN`, and `URL`, optionally `MAX_RESULTS`. |
+| `BUGZILLA`         | Specifies that the script retrieves data from Bugzilla. It should contain `API_KEY`, `DOMAIN`, and `URL`. |
 | `CONDITION`        | Used with the `FROM` and `GET` reserved words to define a condition that must be met to obtain the required data from the input. |
 | `DEFAULT_COLUMNS`  | Enables the use of default column names. This means they can be omitted in the configuration file, and source data items and target spreadsheet columns with matching names are paired automatically. The reserved word value can be either 'True' or 'False' and can be defined either globally or specifically for each sheet. This option is globally set to 'False' by default. |
 | `DELIMITER`        | The delimiter separates items in one cell. The default value is a space. The delimiter can be defined globally or individually for sheets and columns. If `DELIMITER` is defined together with the `GET` reserved word, it defines a separator between items obtained from the `GET` list. |
@@ -138,7 +138,7 @@ Jira structured data, including custom field IDs and names, can be found in XML 
 | `JIRA`             | Specifies that the script retrieves data from Jira. It should contain `SERVER` and `TOKEN`, optionally `MAX_RESULTS`. |
 | `KEY`              | The column containing keys is identified by the `KEY` reserved word with a value of `True`. It can be defined either globally or specifically for each sheet. |
 | `LINK`             | Used in columns, it contains a URL that is used as a prefix for values. If the column is a key column, link format is used. |
-| `MAX_RESULTS`      | Defines the maximum number of items obtained from Jira for each query. It can only be part of the `JIRA` section. |
+| `MAX_RESULTS`      | Defines the maximum number of items obtained from Jira for each query (pagination is supported). The default value is 100. It can only be part of the `JIRA` section. |
 | `NAME`             | Defines the name of each sheet. |
 | `OFFSET`           | Header offset in the spreadsheet input file (optional). It is ignored if an offset is defined on the command line. |
 | `OPTIONAL`         | When the key with this specific column value is missing, it is not reported as a warning. The value can be a regular expression. |
