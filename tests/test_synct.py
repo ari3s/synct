@@ -154,8 +154,8 @@ class TestTransformDataBasic(unittest.TestCase):
     ], name_func=custom_name_func)
 
     @patch('synct.tsheet.Tsheet', autospec=True)
-    def test_transform_data(self, name, add, default_columns, inherit_formulas, expected_data, \
-            mock_tsheet_class):           #pylint: disable=too-many-arguments,unused-argument
+    def test_transform_data(self, _, add, default_columns, inherit_formulas, expected_data, \
+            mock_tsheet_class):           #pylint: disable=too-many-arguments
         """ Testing with fake data """
         transformed_data = operation(INITIAL_DATA_BASIC, mock_tsheet_class, add, default_columns, \
                 inherit_formulas).fillna('')
@@ -179,8 +179,8 @@ class TestTransformDataAdv(unittest.TestCase):
     ], name_func=custom_name_func)
 
     @patch('synct.tsheet.Tsheet', autospec=True)
-    def test_transform_data(self, name, add, default_columns, inherit_formulas, expected_data, \
-            mock_tsheet_class):           #pylint: disable=too-many-arguments,unused-argument
+    def test_transform_data(self, _, add, default_columns, inherit_formulas, expected_data, \
+            mock_tsheet_class):           #pylint: disable=too-many-arguments
         """ Testing with fake data """
         transformed_data = operation(INITIAL_DATA_ADV, mock_tsheet_class, add, default_columns, \
                 inherit_formulas).fillna('')

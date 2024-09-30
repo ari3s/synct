@@ -295,6 +295,6 @@ def get_cred_files():
         credentials_json = CREDENTIALS_JSON
     credentials_json = os.path.expanduser(credentials_json)
     credentials_json_status = os.stat(credentials_json)
-    (root, ext) = os.path.splitext(credentials_json)    # pylint: disable=unused-variable
+    (root, _) = os.path.splitext(credentials_json)
     token_json = root + TOKEN_JSON
     return (credentials_json, credentials_json_status.st_mode & FILE_PERMISSIONS_MASK, token_json)

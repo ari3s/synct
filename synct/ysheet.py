@@ -108,7 +108,7 @@ class Ysheet(Tsheet):
         # It is needed for the delete_rows workaround:
         self.sheet_length[sheet] = len(self.data[sheet])
 
-    def insert_rows(self, sheet, start_row, inserted_rows):     #pylint: disable=unused-argument
+    def insert_rows(self, sheet, _, inserted_rows):
         """ Insert empty rows in the spreadsheet """
         log.debug(ADD_ROWS_LOCAL_SHEET + "'" + sheet + "'")
 
