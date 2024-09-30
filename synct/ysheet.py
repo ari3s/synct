@@ -152,16 +152,16 @@ class Ysheet(Tsheet):
 
     def update_spreadsheet(self):
         """ Update the target spreadsheet data without header """
-        for sheet in self.active_sheets:
-            if len(self.data[sheet].index) > self.rows[sheet]:
-                self.insert_rows(sheet, \
-                        self.sheets_config[sheet].header_offset+self.rows[sheet]+2, \
-                        len(self.data[sheet])-self.rows[sheet])     #pylint: disable=duplicate-code
-            log.debug(UPDATE_LOCAL_SHEET + "'" + sheet + "'")
-            for index, row in self.data[sheet].iterrows():
+        for t_sheet in self.active_sheets:
+            if len(self.data[t_sheet].index) > self.rows[t_sheet]:
+                self.insert_rows(t_sheet, \
+                        self.sheets_config[t_sheet].header_offset+self.rows[t_sheet]+2, \
+                        len(self.data[t_sheet])-self.rows[t_sheet])
+            log.debug(UPDATE_LOCAL_SHEET + "'" + t_sheet + "'")
+            for index, row in self.data[t_sheet].iterrows():
                 for col_index, value in enumerate(row, start=1):
-                    cell = self.workbook[sheet].cell( \
-                            row=index+self.sheets_config[sheet].header_offset+2, column=col_index)
+                    cell = self.workbook[t_sheet].cell( \
+                            row=index+self.sheets_config[t_sheet].header_offset+2, column=col_index)
                     cell.value = value
 
     def update_column_with_links(self, sheet, column, link):

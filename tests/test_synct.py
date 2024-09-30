@@ -2,6 +2,7 @@
 Testing the synct script functionality that covers
 adding rows, default columns and inheriting formulas.
 """
+from dataclasses import dataclass
 from pathlib import Path
 
 import unittest
@@ -46,7 +47,8 @@ EXPECTED_DATA_ADV_7 = DATA_DIR / 'expected_data_adv_7.txt'
 
 SHEET = 'TEST'
 
-class Args:                  #pylint: disable=too-few-public-methods
+@dataclass
+class Args:
     """ Default command line arguments of the script """
     add = False
     remove = False

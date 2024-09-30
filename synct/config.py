@@ -287,14 +287,14 @@ def get_sheet_config(config_data, spreadsheet):
         header_offset = int(config_data[HEADER_OFFSET])
     if DELIMITER in config_data:
         delimiter = config_data[DELIMITER]
-        for column in columns:          # pylint: disable=consider-using-dict-items
-            columns[column].delimiter = delimiter
+        for _, column in columns.items():
+            column.delimiter = delimiter
     if DEFAULT_COLUMNS in config_data:
         default_columns = config_data[DEFAULT_COLUMNS]
     if INHERIT_FORMULAS in config_data:
         inherit_formulas = config_data[INHERIT_FORMULAS]
-        for column in columns:          # pylint: disable=consider-using-dict-items
-            columns[column].inherit_formulas = inherit_formulas
+        for _, column in columns.items():
+            column.inherit_formulas = inherit_formulas
     if SHEET_COLUMNS in config_data:
         for column, data in config_data[SHEET_COLUMNS].items():
             columns[column] = Column()

@@ -162,41 +162,47 @@ def get_columns(source_item, sheet_config, target_sheet, key_value, columns_list
     return row
 
 def get_value(source_item, sheet_config, column):
-    """ Get value from source """
-    try:
-        value = source_item[sheet_config.columns[column].data]
-    except (KeyError, TypeError):
-        try:
-            value = source_item[column]
-        except (KeyError, TypeError):
-            try:
-                value = eval('source_item.' + sheet_config.columns[column].data)    #pylint: disable=eval-used
-            except KeyError:
-                try:
-                    value = eval('source_item.' + column)    #pylint: disable=eval-used
-                except (AttributeError, SyntaxError):
-                    return None
-            except (AttributeError, SyntaxError, TypeError):
-                return None
-    return value
+    """ Get value from source, handling nested keys or attributes via dot notation. """
+    # Try to retrieve the key from sheet_config.columns[column].data if column is an index
+    if column in sheet_config.columns:
+        key = sheet_config.columns[column].data
+    else:
+        # If column is not an index, assume it's the direct key or path
+        key = column
+    # Split the key by dots to handle nested attributes or keys
+    parts = key.split('.')
+    # Traverse the source_item for each part in the key path
+    for part in parts:
+        if isinstance(source_item, dict):
+            # If source_item is a dictionary, attempt to get the next part as a key
+            source_item = source_item.get(part)
+        else:
+            # If source_item is an object, attempt to get the next part as an attribute
+            if hasattr(source_item, part):
+                source_item = getattr(source_item, part)
+            else:
+                return None                 # If attribute or key is missing, return None
+        # If at any point source_item becomes None, return None
+        if source_item is None:
+            return None
+    return source_item
 
-def trans_value(config, conf_item_keys_list, source_item):  #pylint: disable=unused-argument
+def trans_value(config, conf_item_keys_list, source_item):
     """ Get and transform value from Jira to fit with other formats """
     value = []
+    base_data = getattr(source_item, config.data, None)
+    if base_data is None:
+        return value                        # Early return if base data doesn't exist
     for key in conf_item_keys_list:
-        try:
-            d_value = eval('source_item.' + config.data + '.' + key)    #pylint: disable=eval-used
-        except TypeError:
-            continue
+        # Try to get the value using dictionary or attribute access
+        d_value = getattr(base_data, key, None)
+        if d_value is None:
+            continue                        # Skip if value doesn't exist
         if isinstance(d_value, list):
             for item in d_value:
-                e_value = {}
-                e_value[key] = item
-                value.append(e_value)
+                value.append({key: item})   # Append each item in the list
         else:
-            e_value = {}
-            e_value[key] = d_value
-            value.append(e_value)
+            value.append({key: d_value})    # Append single value
     return value
 
 def parse_gets(gets, config, conf_item_keys_list, conf_item, s_data):
