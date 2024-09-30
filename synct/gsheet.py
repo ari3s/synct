@@ -68,7 +68,7 @@ WRONG_HEADER_OFFSET = 'header offset could be wrong in the sheet '
 GOOGLE_AUTHORIZATION_ERROR = 'Google authorization error'
 INSUFFICIENT_TOKEN = 'Insufficient Google token file: '
 
-class Gsheet(Tsheet):   # pylint: disable=too-many-instance-attributes
+class Gsheet(Tsheet):
     """ Google spreadsheet class """
 
     def __init__(self, config):

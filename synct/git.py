@@ -59,7 +59,7 @@ class Git:
                 with open(os.path.expanduser(token_file_name), 'r', encoding='utf-8') as token_file:
                     token = token_file.read().rstrip('\n')
                     token_file.close()
-            except OSError as exception:    #pylint: disable=duplicate-code
+            except OSError as exception:
                 log.error(self.git + ': ' + exception)
         return token
 

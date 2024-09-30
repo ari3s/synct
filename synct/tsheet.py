@@ -23,7 +23,7 @@ synct.tsheet: Target spreadsheet operations
 import numpy
 import pandas as pd
 
-class Tsheet:   # pylint: disable=too-many-instance-attributes
+class Tsheet:
     """ Google spreadsheet class """
     data = {}
     rows = {}

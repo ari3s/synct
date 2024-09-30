@@ -50,7 +50,7 @@ WRONG_HEADER = 'wrong header in the sheet '
 # Target local spreadsheet engines per file name extension
 engines = {'.xlsx': 'openpyxl', '.xlsm': 'openpyxl', '.xltx': 'openpyxl', '.xltm': 'openpyxl'}
 
-class Ysheet(Tsheet):   # pylint: disable=too-many-instance-attributes
+class Ysheet(Tsheet):
     """ Target local spreadsheet class """
     sheet_length = {}   # It is needed for the delete_rows workaround.
 
