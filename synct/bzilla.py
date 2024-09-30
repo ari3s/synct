@@ -23,6 +23,8 @@ synct.bzilla: Bugzilla access and operations
 import configparser
 import os
 
+from xmlrpc.client import Fault
+
 from bugzilla import Bugzilla
 
 import synct.logger as log
@@ -66,17 +68,17 @@ class Bzilla:
             limit = 0
             query[LIMIT] = limit
         while True:
+            log.debug(BUGZILLA_QUERY + str(query))
             try:
-                log.debug(BUGZILLA_QUERY + str(query))
                 response = self.bzilla_access.query(query)
-            except (AttributeError, TypeError) as exception:
+            except (AttributeError, TypeError, Fault) as exception:
                 self.bzilla_logout()
                 log.error(BUGZILLA_QUERY_FAILED + sheet + ':\n' + str(query))
                 log.fatal_error(exception)
             if len(response) == 0:
                 break                   # The query response is empty
             response_list.extend(response)
-            if len(response) < limit:
+            if len(response) < int(limit):
                 break                   # The query responded with less items than the page limit
             # Set next page query
             if OFFSET in query:
@@ -87,4 +89,7 @@ class Bzilla:
 
     def bzilla_logout(self):
         """ Bugzilla logout """
-        self.bzilla_access.logout()
+        try:
+            self.bzilla_access.logout()
+        except Fault:
+            pass
