@@ -48,7 +48,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 # Write requests limit handling:
 INITIAL_DELAY = 1
 DELAY_MULTIPLIER = 2
-MAX_DELAY_COUNT = 8
+MAX_DELAY_COUNT = 4
 
 # Debug messages:
 ACCESS_GOOGLE_SPREADSHEET = 'access Google spreadsheet'
@@ -278,7 +278,7 @@ class Gsheet(Tsheet):
                 return True                         # successful operation
             except (HttpError, TimeoutError) as error:
                 if count >= MAX_DELAY_COUNT:
-                    log.error(error)
+                    log.fatal_error(error)
                     return False                    # unsuccessful operation
                 sleep(delay)                        # delay in sec
                 delay = DELAY_MULTIPLIER * delay    # prolong the next delay
