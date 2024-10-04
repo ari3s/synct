@@ -1,0 +1,40 @@
+[
+  {
+    "key": "PROJECT-101",
+    "fields": {
+      "summary": "Problem analysis",
+      "assignee": "John Doe",
+      "labels": ["green"],
+      "status": "Closed"
+    }
+  },
+  {
+    "key": "PROJECT-102",
+    "fields": {
+      "summary": "Planning",
+      "assignee": "Jane Smith",
+      "labels": ["blue", "pink"],
+      "status": "In Progress"
+    }
+  },
+  {
+    "key": "PROJECT-103",
+    "fields": {
+      "summary": "Fix the problem",
+      "assignee": "",
+      "labels": [],
+      "status": "New"
+    }
+  },
+  {
+    "key": "PROJECT-104",
+    "fields": {
+      "summary": "Create documentation",
+      "assignee": "Joe Bloggs",
+      "labels": [],
+      "status": "In Progress"
+    }
+  }
+]
+
+

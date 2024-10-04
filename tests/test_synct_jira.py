@@ -1,10 +1,13 @@
-""" 
+"""
 Testing the synct script functionality that covers
-adding rows, default columns and inheriting formulas.
+adding rows and default columns with source data
+simulating Jira data structure.
 """
 
 # Disable pylint message regarding similar lines in 2 files
 # pylint: disable=R0801
+
+import json
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,28 +29,14 @@ TESTS_DIR = Path(__file__).parent
 DATA_DIR = TESTS_DIR / 'data'
 SUFFIX = '.txt'
 
-CONFIG_DATA = DATA_DIR / 'config.yaml'
-SOURCE_DATA = DATA_DIR / 'source_data.txt'
-INITIAL_DATA_BASIC = DATA_DIR / 'initial_data_basic.txt'
-INITIAL_DATA_ADV = DATA_DIR / 'initial_data_adv.txt'
+CONFIG_DATA = DATA_DIR / 'config_jira.yaml'
+SOURCE_DATA = DATA_DIR / 'source_data_jira.json'
+INITIAL_DATA = DATA_DIR / 'initial_data_jira.txt'
 
-EXPECTED_DATA_BASIC_0 = DATA_DIR / 'expected_data_basic_0.txt'
-EXPECTED_DATA_BASIC_1 = DATA_DIR / 'expected_data_basic_1.txt'
-EXPECTED_DATA_BASIC_2 = DATA_DIR / 'expected_data_basic_2.txt'
-EXPECTED_DATA_BASIC_3 = DATA_DIR / 'expected_data_basic_3.txt'
-EXPECTED_DATA_BASIC_4 = DATA_DIR / 'expected_data_basic_4.txt'
-EXPECTED_DATA_BASIC_5 = DATA_DIR / 'expected_data_basic_5.txt'
-EXPECTED_DATA_BASIC_6 = DATA_DIR / 'expected_data_basic_6.txt'
-EXPECTED_DATA_BASIC_7 = DATA_DIR / 'expected_data_basic_7.txt'
-
-EXPECTED_DATA_ADV_0 = DATA_DIR / 'expected_data_adv_0.txt'
-EXPECTED_DATA_ADV_1 = DATA_DIR / 'expected_data_adv_1.txt'
-EXPECTED_DATA_ADV_2 = DATA_DIR / 'expected_data_adv_2.txt'
-EXPECTED_DATA_ADV_3 = DATA_DIR / 'expected_data_adv_3.txt'
-EXPECTED_DATA_ADV_4 = DATA_DIR / 'expected_data_adv_4.txt'
-EXPECTED_DATA_ADV_5 = DATA_DIR / 'expected_data_adv_5.txt'
-EXPECTED_DATA_ADV_6 = DATA_DIR / 'expected_data_adv_6.txt'
-EXPECTED_DATA_ADV_7 = DATA_DIR / 'expected_data_adv_7.txt'
+EXPECTED_DATA_0 = DATA_DIR / 'expected_data_jira_0.txt'
+EXPECTED_DATA_1 = DATA_DIR / 'expected_data_jira_1.txt'
+EXPECTED_DATA_2 = DATA_DIR / 'expected_data_jira_2.txt'
+EXPECTED_DATA_3 = DATA_DIR / 'expected_data_jira_3.txt'
 
 SHEET = 'TEST'
 
@@ -57,6 +46,9 @@ class Args:
     add = False
     remove = False
     noupdate = False
+
+class JiraObject:               # pylint: disable=too-few-public-methods
+    """ Object simulating Jira data """
 
 def allow_duplicated_columns(df):
     """ Transformation data structure like obtained from pd.read_excel """
@@ -73,7 +65,19 @@ def allow_duplicated_columns(df):
         col_map.append(col)
     df.columns = col_map
 
-def operation(initial_data, mock_tsheet_class, add, default_columns, inherit_formulas):
+def dictionary_to_object(data):
+    """ Trasnform dictionary to object """
+    if isinstance(data, list):
+        data = [dictionary_to_object(item) for item in data]
+    if not isinstance(data, dict):
+        return data
+    jira_object = JiraObject()
+    for item in data:
+        jira_object.__dict__[item] = dictionary_to_object(data[item])
+    return jira_object
+
+def operation(jira_mode, initial_data, mock_tsheet_class, \
+        add, default_columns, inherit_formulas):        # pylint: disable=too-many-arguments
     """ Make the operation with data and return the final data """
 
     # Arguments set-up
@@ -90,14 +94,22 @@ def operation(initial_data, mock_tsheet_class, add, default_columns, inherit_for
             {SHEET: list(dict.fromkeys(target_spreadsheet_data.columns.values.tolist()))}
 
     # Read source data
-    source_data = pd.read_fwf(SOURCE_DATA, encoding='utf-8', dtype=str).to_dict(orient='records')
+    with open(SOURCE_DATA, encoding='utf-8') as json_file:
+        source_data = json.load(json_file)
 
     # Configure tests parameters
     sheet_conf = configure(default_columns, inherit_formulas)
     tsheet_instance.sheets_config = sheet_conf
 
     # Set up source data instance
-    source_data_instance = set_source_data_instance(source_data, sheet_conf, tsheet_instance)
+    if jira_mode:
+        # Transform dictionary to object
+        source_data_object = dictionary_to_object(source_data)
+        source_data_instance = set_source_data_instance( \
+                source_data_object, sheet_conf, tsheet_instance)
+    else:
+        # Keep dictionary source format
+        source_data_instance = set_source_data_instance(source_data, sheet_conf, tsheet_instance)
 
     # Call the function under test
     transform_data(source_data_instance, tsheet_instance, args)
@@ -109,7 +121,7 @@ def configure(default_columns, inherit_formulas):
     header_offset = 0
     delimiter = ' '
     sheet_columns = {}
-    key = 'G_ISSUE'
+    key = 'Issue_key'
 
     with open(CONFIG_DATA, encoding='utf-8') as config_file:
         config_sheet_columns = yaml.safe_load(config_file.read())
@@ -144,51 +156,43 @@ def custom_name_func(testcase_func, param_num, param):
     return (f'{testcase_func.__name__}_'
             f'{parameterized.to_safe_name("_".join([str(param.args[0]), param_num]))}')
 
-class TestTransformDataBasic(unittest.TestCase):
-    """ Test the basic synct script functionality with unique columns """
+class TestTransformDataGeneral(unittest.TestCase):
+    """ Test the synct script functionality with dictionary format source data """
     @parameterized.expand([
         # Order of parameters:
         # test name, add rows, default columns, inherit formulas, expected data
-        ('disabledparameters', False, False, False, EXPECTED_DATA_BASIC_0),
-        ('addrows', True, False, False, EXPECTED_DATA_BASIC_1),
-        ('defaultcolumns', False, True, False, EXPECTED_DATA_BASIC_2),
-        ('addrows_defaultcolumns', True, True, False, EXPECTED_DATA_BASIC_3),
-        ('inheritformulas', False, False, True, EXPECTED_DATA_BASIC_4),
-        ('addrows_inheritformulas', True, False, True, EXPECTED_DATA_BASIC_5),
-        ('defaultcolumns_inheritformulas', False, True, True, EXPECTED_DATA_BASIC_6),
-        ('addrows_defaultcolumns_inheritformulas', True, True, True, EXPECTED_DATA_BASIC_7)
+        ('disabledparameters', False, False, False, EXPECTED_DATA_0),
+        ('addrows', True, False, False, EXPECTED_DATA_1),
+        ('defaultcolumns', False, True, False, EXPECTED_DATA_2),
+        ('addrows_defaultcolumns', True, True, False, EXPECTED_DATA_3)
     ], name_func=custom_name_func)
 
     @patch('synct.tsheet.Tsheet', autospec=True)
     def test_transform_data(self, _, add, default_columns, inherit_formulas, expected_data, \
             mock_tsheet_class):           # pylint: disable=too-many-arguments
         """ Testing with fake data """
-        transformed_data = operation(INITIAL_DATA_BASIC, mock_tsheet_class, add, default_columns, \
+        transformed_data = operation(False, INITIAL_DATA, mock_tsheet_class, add, default_columns, \
                 inherit_formulas).fillna('')
         expected_data = pd.read_fwf(expected_data, encoding='utf-8', dtype=str).fillna('')
         allow_duplicated_columns(expected_data)
         assert_frame_equal(transformed_data, expected_data, check_dtype=False)
 
-class TestTransformDataAdv(unittest.TestCase):
-    """ Test the advanced synct script functionality with multiple target columns """
+class TestTransformDataJira(unittest.TestCase):
+    """ Test the synct script functionality with object format source data """
     @parameterized.expand([
         # Order of parameters:
         # test name, add rows, default columns, inherit formulas, expected data
-        ('disabledparameters', False, False, False, EXPECTED_DATA_ADV_0),
-        ('addrows', True, False, False, EXPECTED_DATA_ADV_1),
-        ('defaultcolumns', False, True, False, EXPECTED_DATA_ADV_2),
-        ('addrows_defaultcolumns', True, True, False, EXPECTED_DATA_ADV_3),
-        ('inheritformulas', False, False, True, EXPECTED_DATA_ADV_4),
-        ('addrows_inheritformulas', True, False, True, EXPECTED_DATA_ADV_5),
-        ('defaultcolumns_inheritformulas', False, True, True, EXPECTED_DATA_ADV_6),
-        ('addrows_defaultcolumns_inheritformulas', True, True, True, EXPECTED_DATA_ADV_7)
+        ('disabledparameters', False, False, False, EXPECTED_DATA_0),
+        ('addrows', True, False, False, EXPECTED_DATA_1),
+        ('defaultcolumns', False, True, False, EXPECTED_DATA_2),
+        ('addrows_defaultcolumns', True, True, False, EXPECTED_DATA_3)
     ], name_func=custom_name_func)
 
     @patch('synct.tsheet.Tsheet', autospec=True)
     def test_transform_data(self, _, add, default_columns, inherit_formulas, expected_data, \
             mock_tsheet_class):           # pylint: disable=too-many-arguments
         """ Testing with fake data """
-        transformed_data = operation(INITIAL_DATA_ADV, mock_tsheet_class, add, default_columns, \
+        transformed_data = operation(True, INITIAL_DATA, mock_tsheet_class, add, default_columns, \
                 inherit_formulas).fillna('')
         expected_data = pd.read_fwf(expected_data, encoding='utf-8', dtype=str).fillna('')
         allow_duplicated_columns(expected_data)

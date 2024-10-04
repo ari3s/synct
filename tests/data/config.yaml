@@ -1,3 +1,7 @@
+#
+#  Configuration file that simulates general source data structure
+#  for synct script testing purpose.
+#
 G_ISSUE: ISSUE
 G_PRIORITY: PRIORITY
 G_STATUS: STATUS

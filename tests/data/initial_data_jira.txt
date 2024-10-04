@@ -1,0 +1,4 @@
+Issue_key   Title            Assignee   fields.assignee Label     fields.labels Issue_status
+PROJECT-101 Problem analysis John Doe   John Doe        blue pink blue pink     In Progress
+PROJECT-102 Planning                                                            New
+PROJECT-103 Fix the problem                                                     New

@@ -1,0 +1,9 @@
+#
+#  Configuration file that simulates Jira source data structure
+#  for synct script testing purpose.
+#
+Issue_key: key
+Title: fields.summary
+Assignee: fields.assignee
+Label: fields.labels
+Issue_status: fields.status

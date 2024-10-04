@@ -1,0 +1,5 @@
+Issue_key   Title                Assignee   fields.assignee Label     fields.labels Issue_status
+PROJECT-101 Problem analysis     John Doe   John Doe        green     green         Closed
+PROJECT-102 Planning             Jane Smith Jane Smith      blue pink blue pink     In Progress
+PROJECT-103 Fix the problem                                                         New
+PROJECT-104 Create documentation Joe Bloggs Joe Bloggs                              In Progress
