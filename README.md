@@ -11,7 +11,7 @@
 The script can be installed on Fedora systems using `dnf` with the package stored in this project:
 
 ```
-sudo dnf install synct-1.8.1-1.fc40.noarch.rpm
+sudo dnf install synct-1.8.2-1.fc40.noarch.rpm
 ```
 
 Alternatively, you can install the script from Fedora COPR using these commands:
@@ -39,7 +39,7 @@ python3-pyyaml
 The script can be installed on Linux or MacOS systems using `pip`:
 
 ```
-python -m pip install synct-1.8.1.tar.gz
+python -m pip install synct-1.8.2.tar.gz
 ```
 
 The following dependencies will be installed from PyPI by the above command:
