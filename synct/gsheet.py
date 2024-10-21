@@ -294,7 +294,11 @@ def get_cred_files():
     else:
         credentials_json = CREDENTIALS_JSON
     credentials_json = os.path.expanduser(credentials_json)
-    credentials_json_status = os.stat(credentials_json)
+    try:
+        credentials_json_status = os.stat(credentials_json)
+    except FileNotFoundError as exception:
+        log.error(GOOGLE_CREDENTIALS_JSON_FILE+credentials_json)
+        log.fatal_error(exception)
     (root, _) = os.path.splitext(credentials_json)
     token_json = root + TOKEN_JSON
     return (credentials_json, credentials_json_status.st_mode & FILE_PERMISSIONS_MASK, token_json)
