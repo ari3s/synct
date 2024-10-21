@@ -179,40 +179,35 @@ The script uses the REST API, which requires an API token. The token can be gene
 
 ### Google
 
-To use the Google Sheets API to read and write data, the script requires authorized access using OAuth 2.0 credentials in the form of a service account JSON key file. Follow these steps to set up the necessary credentials:
+To allow the script to access and modify Google Sheets, you need to set up OAuth 2.0 credentials. Follow these steps:
 
-1. **Create Service Account Credentials**
-   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
-   - Select your project or create a new one.
+1. **Create a Project in Google Cloud Console**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/).
+   - Create a new project or select an existing one.
    - Navigate to **APIs & Services** > **Credentials**.
-   - Click on **Create credentials** and select **Service account**.
-   - Follow the prompts to set up a service account. You may choose a descriptive name, role, and other settings.
 
-2. **Download the JSON Key File**
-   - Once the service account is created, go to the **Keys** section.
-   - Click **Add Key** > **Create new key**.
-   - Choose **JSON** and download the key file. Save it in a secure location, for example in `.google/google_credentials.json` file in you home directory.
+2. **Enable Google Sheets API**
+   - In the Cloud Console, go to **APIs & Services** > **Library**.
+   - Search for **Google Sheets API** and enable it for your project.
 
-3. **Enable Required APIs**
-   - Navigate to **APIs & Services** > **Library**.
-   - Enable the following APIs for your project:
-     - **Google Sheets API**
-     - **Google Drive API**
-
-4. **Set Up Environment Variable for Credentials**
-   - Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of your downloaded JSON key file. This variable allows your script to authenticate using the service account credentials.
-
-5. **Configure OAuth Consent Screen**
+3. **Set Up OAuth Consent Screen**
    - Navigate to **APIs & Services** > **OAuth consent screen**.
-   - Choose **Internal** or **External** based on your usage.
-   - Complete the required fields. If you use sensitive or restricted scopes, you'll need to go through the verification process.
+   - Fill in the required fields (app name, user support email, etc.) and add necessary scopes like `https://www.googleapis.com/auth/spreadsheets` for accessing Google Sheets.
 
-6. **Set OAuth Scopes**
-   Make sure that your OAuth consent screen allows access to the necessary Google Sheets API scopes:
+4. **Create OAuth Credentials**
+   - In the **Credentials** section, click **Create Credentials** and select **OAuth client ID**.
+   - For **Application Type**, choose **Desktop app** option to authorize access through a simple, secure browser-based flow, suitable for locally run scripts.
+   - After configuring, download the JSON file, which contains your `client_id`, `client_secret`, and other information required for OAuth authorization. Save the JSON file in a secure location, for example in `.google/google_credentials.json` file in you home directory.
+   - Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of your downloaded JSON file, for example `~/.google`. This variable allows your script to authenticate using the service account credentials.
 
-   | API               | Scope                         | User-facing description                                |
-   | ----------------- | ----------------------------- | ------------------------------------------------------ |
-   | Google Sheets API | `https://www.googleapis.com/auth/spreadsheets` | See, edit, create, and delete all your Google Sheets spreadsheets |
+5. **Authorization Process**
+   - When the script runs, it will prompt you to authenticate via your browser.
+   - After authentication, you will be redirected with an authorization code, which the script uses to obtain access tokens for interacting with the Google Sheets API.
+
+6. **Manage Access and Permissions**
+   - You can manage or revoke the application’s access through your Google Account settings under **Security** > **Third-party apps with account access**.
+
+For more details, refer to [Google's OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2).
 
 ## Support
 
