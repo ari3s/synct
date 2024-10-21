@@ -21,6 +21,7 @@ synct reads data and copies in Google or Excel spreadsheet.
 import argparse
 import importlib
 import os
+import signal
 import sys
 
 from importlib.metadata import version, PackageNotFoundError
@@ -42,6 +43,7 @@ VERSION_FILE = 'VERSION'
 DESCRIPTION = 'Retrieve data from a source and convert it to either '\
         'Google or Excel spreadsheet as defined in the configuration file.'
 EPILOG = 'More details at https://github.com/ari3s/synct'
+TERMINATED_BY_USER = '\nScript terminated by user.'
 
 CONFIG_FILE = PROG + '.yaml'
 
@@ -57,6 +59,15 @@ NO_UPDATE_MODE = 'no update mode (target spreadsheet update is disabled)'
 
 # Error messages:
 UNKNOWN_KEY = 'unknown key in the sheet '
+
+def handle_sigint(_, __):
+    """
+    Handle Ctrl+C that interrupts the script.
+    Two arguments are needed but unused here.
+    """
+    print(TERMINATED_BY_USER)
+    # Signal-based exit code
+    sys.exit(130)
 
 def get_cli_parameters():
     """ Get parameters from CLI and check that they are correct """
@@ -203,6 +214,7 @@ def main():
     """
     Get the config file, read source data and write them into the target spreadsheet.
     """
+    signal.signal(signal.SIGINT, handle_sigint)
     log.debug(SCRIPT_STARTED)
     args = get_cli_parameters()
     if args.noupdate:
